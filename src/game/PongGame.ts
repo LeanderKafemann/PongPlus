@@ -1,13 +1,14 @@
 ﻿/**
  * PongGame - Main game logic with random abilities
  * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 import { Ball } from './Ball';
 import { Paddle } from './Paddle';
 import { SoundManager } from '../managers/SoundManager';
 import { LeaderboardManager } from '../managers/LeaderboardManager';
+import { MusicManager } from '../managers/MusicManager';
 import { AbilitySystem, AbilityType, type Ability } from './AbilitySystem';
 import type { GameConfig } from './types';
 
@@ -25,17 +26,28 @@ export class PongGame {
   private gameRunning: boolean = false;
   private soundManager: SoundManager;
   private leaderboardManager: LeaderboardManager;
+  private musicManager: MusicManager;
   private abilitySystem: AbilitySystem;
   private config: GameConfig;
   private countdown: number = 0;
   private countdownActive: boolean = false;
   private slowMotionActive: boolean = false;
+  private reverseControlsActive: boolean = false;
+  private magnetActive: boolean = false;
+  private doubleScoreActive: boolean = false;
+  private freezeActive: boolean = false;
+  
+  // Easter Eggs
+  private konamiCode: string[] = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+  private konamiProgress: number = 0;
+  private secretClicks: number = 0;
 
   constructor() {
     this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     this.ctx = this.canvas.getContext('2d')!;
     this.soundManager = new SoundManager();
     this.leaderboardManager = new LeaderboardManager();
+    this.musicManager = new MusicManager();
     this.abilitySystem = new AbilitySystem();
 
     this.config = {
@@ -52,11 +64,14 @@ export class PongGame {
 
     this.setupControls();
     this.setupUI();
+    this.setupEasterEggs();
+    this.setupMusicToggle();
   }
 
   private setupControls(): void {
     window.addEventListener('keydown', (e) => { 
       this.keys[e.key] = true;
+      this.checkKonamiCode(e.key);
       
       if (!this.gameRunning || this.paused || this.countdownActive) return;
       
@@ -70,6 +85,53 @@ export class PongGame {
       });
     });
     window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
+  }
+
+  private checkKonamiCode(key: string): void {
+    if (key === this.konamiCode[this.konamiProgress]) {
+      this.konamiProgress++;
+      if (this.konamiProgress === this.konamiCode.length) {
+        this.activateKonamiCode();
+        this.konamiProgress = 0;
+      }
+    } else {
+      this.konamiProgress = 0;
+    }
+  }
+
+  private activateKonamiCode(): void {
+    document.body.classList.add('konami-active');
+    alert('🎉 Konami Code Activated! Rainbow Mode Enabled!');
+    this.soundManager.play('score');
+  }
+
+  private setupEasterEggs(): void {
+    // Secret click counter on title
+    const title = document.querySelector('h1');
+    if (title) {
+      title.addEventListener('click', () => {
+        this.secretClicks++;
+        if (this.secretClicks === 10) {
+          title.classList.add('shake');
+          alert('🎮 You found a secret! Ultra Speed Mode unlocked for next game!');
+          this.config.paddleSpeed = 12;
+          setTimeout(() => title.classList.remove('shake'), 500);
+          this.secretClicks = 0;
+        }
+      });
+    }
+  }
+
+  private setupMusicToggle(): void {
+    const musicBtn = document.createElement('div');
+    musicBtn.className = 'music-indicator';
+    musicBtn.textContent = '🎵';
+    musicBtn.title = 'Toggle Background Music';
+    musicBtn.addEventListener('click', () => {
+      this.musicManager.toggle();
+      musicBtn.textContent = this.musicManager.isPlaying() ? '🎵' : '🔇';
+    });
+    document.body.appendChild(musicBtn);
   }
 
   private isAbilityKey(pressedKey: string, abilityKey: string): boolean {
@@ -116,8 +178,32 @@ export class PongGame {
       case AbilityType.GIANT_PADDLE:
         this.soundManager.play('giantPaddle');
         break;
+      case AbilityType.REVERSE_CONTROLS:
+        this.reverseControlsActive = true;
+        this.soundManager.play('reverseControls');
+        setTimeout(() => {
+          this.reverseControlsActive = false;
+        }, 3000);
+        break;
+      case AbilityType.MAGNET:
+        this.magnetActive = true;
+        this.soundManager.play('magnet');
+        setTimeout(() => {
+          this.magnetActive = false;
+        }, 2000);
+        break;
+      case AbilityType.DOUBLE_SCORE:
+        this.doubleScoreActive = true;
+        this.soundManager.play('doubleScore');
+        break;
+      case AbilityType.FREEZE:
+        this.freezeActive = true;
+        this.soundManager.play('freeze');
+        setTimeout(() => {
+          this.freezeActive = false;
+        }, 1500);
+        break;
       case AbilityType.MULTI_BALL:
-        // Multi-ball would require more complex implementation
         this.soundManager.play('multiBall');
         break;
     }
@@ -144,6 +230,7 @@ export class PongGame {
 
   private showMenu(): void {
     this.stopGame();
+    this.musicManager.stop();
     document.getElementById('menu')!.classList.remove('hidden');
     document.getElementById('gameContainer')!.classList.add('hidden');
     document.getElementById('leaderboard')!.classList.add('hidden');
@@ -182,6 +269,9 @@ export class PongGame {
     // Display selected abilities
     this.displaySelectedAbilities(selectedAbilities);
     
+    // Start music
+    this.musicManager.start();
+    
     document.getElementById('menu')!.classList.add('hidden');
     document.getElementById('gameContainer')!.classList.remove('hidden');
     document.getElementById('leaderboard')!.classList.add('hidden');
@@ -206,11 +296,12 @@ export class PongGame {
     if (!container) return;
     
     container.innerHTML = abilities.map(a => 
-      `<div style="display: inline-block; margin: 0 10px; padding: 5px 10px; background: ${a.color}; color: white; border-radius: 5px; font-size: 14px;">
+      `<div class="ability-badge" style="background: ${a.color};">
         ${a.icon} ${a.name} (${a.key})
       </div>`
     ).join('');
   }
+
 
   private async runCountdown(): Promise<void> {
     this.countdownActive = true;
@@ -257,33 +348,53 @@ export class PongGame {
   }
 
   private update(): void {
-    if (this.keys['w'] || this.keys['W']) this.player.move(-1, this.canvas.height);
-    if (this.keys['s'] || this.keys['S']) this.player.move(1, this.canvas.height);
+    // Player controls with arrow keys OR W/S
+    const upPressed = this.keys['w'] || this.keys['W'] || this.keys['ArrowUp'];
+    const downPressed = this.keys['s'] || this.keys['S'] || this.keys['ArrowDown'];
+    
+    // Reverse controls if active
+    const direction = this.reverseControlsActive ? -1 : 1;
+    
+    if (upPressed) this.player.move(-1 * direction, this.canvas.height);
+    if (downPressed) this.player.move(1 * direction, this.canvas.height);
 
     this.player.update();
-    this.ai.update();
-
-    // AI logic
-    const aiCenter = this.ai.y + this.ai.height / 2;
-    if (aiCenter < this.ball.y - 35) this.ai.move(1, this.canvas.height);
-    else if (aiCenter > this.ball.y + 35) this.ai.move(-1, this.canvas.height);
-
-    // AI ability usage
-    if (Math.abs(this.ball.x - this.ai.x) < 100 && this.ball.getSpeed() > 6) {
-      const random = Math.random();
-      const abilities = this.ai.getAssignedAbilities();
+    
+    // AI can't move if frozen
+    if (!this.freezeActive) {
+      this.ai.update();
       
-      if (random < 0.2 && abilities.some(a => a.type === AbilityType.SHIELD)) {
-        this.ai.activateAbility(AbilityType.SHIELD);
-      } else if (random < 0.3 && abilities.some(a => a.type === AbilityType.SMASH)) {
-        if (this.ai.activateAbility(AbilityType.SMASH)) {
-          this.ball.speedX *= 1.5;
-          this.ball.speedY *= 1.2;
+      const aiCenter = this.ai.y + this.ai.height / 2;
+      if (aiCenter < this.ball.y - 35) this.ai.move(1, this.canvas.height);
+      else if (aiCenter > this.ball.y + 35) this.ai.move(-1, this.canvas.height);
+
+      // AI ability usage
+      if (Math.abs(this.ball.x - this.ai.x) < 100 && this.ball.getSpeed() > 6) {
+        const random = Math.random();
+        const abilities = this.ai.getAssignedAbilities();
+        
+        if (random < 0.2 && abilities.some(a => a.type === AbilityType.SHIELD)) {
+          this.ai.activateAbility(AbilityType.SHIELD);
+        } else if (random < 0.3 && abilities.some(a => a.type === AbilityType.SMASH)) {
+          if (this.ai.activateAbility(AbilityType.SMASH)) {
+            this.ball.speedX *= 1.5;
+            this.ball.speedY *= 1.2;
+          }
+        } else if (random < 0.35 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
+          this.ai.activateAbility(AbilityType.TELEPORT);
+          this.ai.teleport(this.canvas.height);
+        } else if (random < 0.4 && abilities.some(a => a.type === AbilityType.FREEZE)) {
+          // AI uses freeze on player
+          this.ai.activateAbility(AbilityType.FREEZE);
         }
-      } else if (random < 0.35 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
-        this.ai.activateAbility(AbilityType.TELEPORT);
-        this.ai.teleport(this.canvas.height);
       }
+    }
+
+    // Magnet effect - pull ball towards player paddle
+    if (this.magnetActive) {
+      const paddleCenter = this.player.y + this.player.height / 2;
+      const dy = paddleCenter - this.ball.y;
+      this.ball.speedY += dy * 0.02;
     }
 
     this.ball.update();
@@ -329,7 +440,9 @@ export class PongGame {
 
     // Scoring
     if (this.ball.x - this.ball.radius <= 0) {
-      this.aiScore++;
+      const points = this.doubleScoreActive ? 2 : 1;
+      this.aiScore += points;
+      this.doubleScoreActive = false;
       this.soundManager.play('score');
       this.updateScore();
       this.checkGameOver();
@@ -338,7 +451,9 @@ export class PongGame {
       }
     } 
     else if (this.ball.x + this.ball.radius >= this.canvas.width) {
-      this.playerScore++;
+      const points = this.doubleScoreActive ? 2 : 1;
+      this.playerScore += points;
+      this.doubleScoreActive = false;
       this.soundManager.play('score');
       this.updateScore();
       this.checkGameOver();
@@ -369,6 +484,30 @@ export class PongGame {
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
     
+    // Freeze effect overlay
+    if (this.freezeActive) {
+      this.ctx.fillStyle = 'rgba(96, 165, 250, 0.15)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
+    // Reverse controls indicator
+    if (this.reverseControlsActive) {
+      this.ctx.fillStyle = 'rgba(236, 72, 153, 0.1)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
+    // Magnet effect
+    if (this.magnetActive) {
+      const gradient = this.ctx.createRadialGradient(
+        this.player.x, this.player.y + this.player.height / 2, 0,
+        this.player.x, this.player.y + this.player.height / 2, 150
+      );
+      gradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+      gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+      this.ctx.fillStyle = gradient;
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     this.ctx.setLineDash([10, 10]);
     this.ctx.beginPath();
@@ -378,11 +517,30 @@ export class PongGame {
     this.ctx.setLineDash([]);
     
     this.player.draw(this.ctx);
-    this.ai.draw(this.ctx);
+    
+    // Draw frozen AI with ice effect
+    if (this.freezeActive) {
+      this.ctx.save();
+      this.ctx.globalAlpha = 0.7;
+      this.ai.draw(this.ctx);
+      this.ctx.restore();
+      
+      // Ice crystals
+      this.ctx.fillStyle = 'rgba(96, 165, 250, 0.5)';
+      for (let i = 0; i < 5; i++) {
+        const x = this.ai.x + Math.random() * this.ai.width;
+        const y = this.ai.y + Math.random() * this.ai.height;
+        this.ctx.fillRect(x, y, 3, 3);
+      }
+    } else {
+      this.ai.draw(this.ctx);
+    }
+    
     this.ball.draw(this.ctx);
     
     this.drawSpeedometer();
     this.drawAbilityHints();
+    this.drawActiveEffects();
     
     if (this.countdownActive && this.countdown > 0) {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -402,6 +560,26 @@ export class PongGame {
     }
   }
 
+  private drawActiveEffects(): void {
+    const effects: string[] = [];
+    
+    if (this.slowMotionActive) effects.push('🟢 Slow Motion');
+    if (this.reverseControlsActive) effects.push('🔄 Reversed');
+    if (this.magnetActive) effects.push('🧲 Magnet');
+    if (this.doubleScoreActive) effects.push('💎 Double Score');
+    if (this.freezeActive) effects.push('❄️ Frozen');
+    
+    if (effects.length > 0) {
+      this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      this.ctx.font = 'bold 16px Arial';
+      this.ctx.textAlign = 'center';
+      effects.forEach((effect, index) => {
+        this.ctx.fillText(effect, this.canvas.width / 2, 60 + index * 25);
+      });
+      this.ctx.textAlign = 'left';
+    }
+  }
+
   private drawAbilityHints(): void {
     const abilities = this.player.getAssignedAbilities();
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
@@ -409,6 +587,9 @@ export class PongGame {
     
     const hints = abilities.map(a => `${a.key}: ${a.name}`).join(' | ');
     this.ctx.fillText(hints, 10, this.canvas.height - 10);
+    
+    // Arrow keys hint
+    this.ctx.fillText('↑↓ or W/S: Move', 10, this.canvas.height - 30);
   }
 
   private drawSpeedometer(): void {
@@ -451,6 +632,7 @@ export class PongGame {
   private checkGameOver(): void {
     if (this.playerScore >= this.config.winScore || this.aiScore >= this.config.winScore) {
       this.stopGame();
+      this.musicManager.stop();
       this.showGameOver();
     }
   }

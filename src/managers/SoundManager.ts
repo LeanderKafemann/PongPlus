@@ -1,7 +1,7 @@
 /**
  * SoundManager - Handles all audio effects
  * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.1.0
+ * @version 1.2.0
  */
 
 export class SoundManager {
@@ -27,6 +27,10 @@ export class SoundManager {
     this.sounds.multiBall = this.createTone(750, 0.15);
     this.sounds.giantPaddle = this.createTone(500, 0.12);
     this.sounds.ghostBall = this.createTone(600, 0.1);
+    this.sounds.reverseControls = this.createTone(350, 0.15);
+    this.sounds.magnet = this.createTone(950, 0.12);
+    this.sounds.doubleScore = this.createTone(800, 0.2);
+    this.sounds.freeze = this.createTone(250, 0.15);
   }
 
   private createTone(frequency: number, duration: number): AudioBuffer {

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![PongPlus Banner](https://img.shields.io/badge/PongPlus-v1.1.0-blueviolet?style=for-the-badge)
+![PongPlus Banner](https://img.shields.io/badge/PongPlus-v1.2.0-blueviolet?style=for-the-badge)
 [![Live Demo](https://img.shields.io/badge/Play-Now-success?style=for-the-badge&logo=github)](https://leanderkafemann.github.io/PongPlus/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -73,6 +73,10 @@ Each game randomly selects **3 abilities** from this pool:
 | 🟡 | **Multi-Ball** | T | Split ball into 3 for 3s | 12s |
 | 🟠 | **Giant Paddle** | G | +50% paddle size for 4s | 8s |
 | ⚪ | **Ghost Ball** | V | Ball invisible for 1.5s | 7s |
+| 🔄 | **Reverse Controls** | C | Opponent controls reversed 3s | 9s |
+| 🧲 | **Magnet** | M | Ball attracted to paddle 2s | 7.5s |
+| 💎 | **Double Score** | D | Next point counts double | 10s |
+| ❄️ | **Freeze** | X | Freeze opponent for 1.5s | 8s |
 
 **Strategy Changes Every Game!** 🎯
 
@@ -120,7 +124,13 @@ Powered by **Web Audio API** with procedural generation:
 <li>Shield → 660 Hz (E5)<br/>
 <li>Speed Boost → 880 Hz (A5)<br/>
 <li>Teleport → 1000 Hz (C6)<br/>
-<li>Countdown → 400 Hz (G4)
+<li>Countdown → 400 Hz (G4)<br/>
+<li>Reverse → 350 Hz (F4)<br/>
+<li>Magnet → 950 Hz (A#5)<br/>
+<li>Double Score → 800 Hz (G#5)<br/>
+<li>Freeze → 250 Hz (B3)<br/><br/>
+
+<li>Music → Pentatonic Scale (C, D, E, G, A)
 
 Toggle sound on/off anytime during gameplay.
 
@@ -146,7 +156,7 @@ Toggle sound on/off anytime during gameplay.
 <li>E → Secondary Ability (varies)<br/>
 <li>Q → Tertiary Ability (varies)
 
-*Additional keys: R, F, T, G, V depending on abilities*
+*Additional keys: E, Q, R, F, T, G, V, C, M, D, X depending on abilities*
 
 ### 🎛️ Game Controls
 
@@ -320,6 +330,6 @@ Made with ❤️ and TypeScript
 
 © 2025 LeanderKafemann. All rights reserved.
 
-v1.1.0
+v1.2.0
 
 </div> 

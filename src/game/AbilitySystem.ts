@@ -1,6 +1,7 @@
 ﻿/**
  * AbilitySystem - Manages random ability selection
  * @copyright 2025 LeanderKafemann. All rights reserved.
+ * @version 1.2.0
  */
 
 export enum AbilityType {
@@ -11,7 +12,11 @@ export enum AbilityType {
   SLOW_MOTION = 'slowMotion',
   MULTI_BALL = 'multiBall',
   GIANT_PADDLE = 'giantPaddle',
-  GHOST_BALL = 'ghostBall'
+  GHOST_BALL = 'ghostBall',
+  REVERSE_CONTROLS = 'reverseControls',
+  MAGNET = 'magnet',
+  DOUBLE_SCORE = 'doubleScore',
+  FREEZE = 'freeze'
 }
 
 export interface Ability {
@@ -102,6 +107,45 @@ export const ALL_ABILITIES: Ability[] = [
     color: '#d1d5db',
     key: 'V',
     cooldownMax: 420,
+    duration: 90
+  },
+  {
+    type: AbilityType.REVERSE_CONTROLS,
+    name: 'Reverse Controls',
+    description: 'Opponent controls reversed 3s',
+    icon: '🔄',
+    color: '#ec4899',
+    key: 'C',
+    cooldownMax: 540,
+    duration: 180
+  },
+  {
+    type: AbilityType.MAGNET,
+    name: 'Magnet',
+    description: 'Ball attracted to paddle 2s',
+    icon: '🧲',
+    color: '#8b5cf6',
+    key: 'M',
+    cooldownMax: 450,
+    duration: 120
+  },
+  {
+    type: AbilityType.DOUBLE_SCORE,
+    name: 'Double Score',
+    description: 'Next point counts double',
+    icon: '💎',
+    color: '#06b6d4',
+    key: 'D',
+    cooldownMax: 600
+  },
+  {
+    type: AbilityType.FREEZE,
+    name: 'Freeze',
+    description: 'Freeze opponent for 1.5s',
+    icon: '❄️',
+    color: '#60a5fa',
+    key: 'X',
+    cooldownMax: 480,
     duration: 90
   }
 ];

@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2025-10-18
+
+### 🎵 Music, Easter Eggs & Enhanced UI
+
+#### Added
+- ✅ **12 Unique Abilities** - Expanded from 8 to 12 different abilities
+- ✅ **New Abilities:**
+  - 🔄 **Reverse Controls (C)** - Opponent controls reversed for 3s, 9s cooldown
+  - 🧲 **Magnet (M)** - Ball attracted to paddle for 2s, 7.5s cooldown
+  - 💎 **Double Score (D)** - Next point counts double, 10s cooldown
+  - ❄️ **Freeze (X)** - Freeze opponent for 1.5s, 8s cooldown
+
+#### Enhanced
+- 🎵 **Background Music System** - Procedural pentatonic melody
+- 🎮 **Arrow Key Support** - Move with ↑↓ in addition to W/S
+- 🎨 **Glassmorphism UI** - Modern blur, shadow, and opacity effects
+- 🎯 **Active Effect Display** - Shows all active abilities on screen
+- 🧊 **Visual Effect Overlays** - Color tints for each active ability
+- ❄️ **Freeze Animation** - Ice crystals on frozen paddle
+
+#### Easter Eggs
+- 🎮 **Konami Code** - ↑↑↓↓←→←→BA for rainbow mode
+- 🎯 **Secret Click** - Click title 10 times for ultra speed mode
+- 🎵 **Music Toggle** - Floating music button (top-right)
+
+#### UI/UX Improvements
+- 💎 **Rounded Elements** - All tables and containers have rounded corners
+- ✨ **Backdrop Blur** - Glassmorphism effect on all UI elements
+- 🌈 **Smooth Shadows** - Layered shadows for depth
+- 🎨 **Hover Animations** - Interactive feedback on all buttons
+- 📱 **Responsive Design** - Better mobile support
+
+#### Technical
+- 📦 **New Module:** `MusicManager.ts` - Background music system
+- 🎯 **Effect System** - Centralized visual effect management
+- 🧩 **Improved Collision** - Better magnet and freeze interactions
+- 📝 **Enhanced Comments** - More JSDoc documentation
+
+---
+
 ## [1.1.0] - 2025-10-18
 
 ### 🎲 Random Ability System
@@ -79,14 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - 🔊 **Sound System**
   - Web Audio API sound generation
-  - Dynamic sound effects:
-    - Paddle hit (440 Hz)
-    - Wall bounce (220 Hz)
-    - Score (330 Hz)
-    - Smash (550 Hz)
-    - Shield (660 Hz)
-    - Speed boost (880 Hz)
-    - Countdown tick (400 Hz)
+  - Dynamic sound effects
   - Toggle sound on/off
 
 - 🏆 **Leaderboard System**
@@ -132,14 +165,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned Features
 - 🎯 Multiplayer mode (local)
 - 🌐 Online multiplayer support
-- 🎨 Customizable themes
+- 🎨 Customizable themes & color schemes
 - 🏅 Achievements system
 - 📱 Mobile touch controls
-- 🎵 Background music
 - 💾 Cloud save synchronization
 - 🌍 Multiple languages support
-- 🎲 More abilities (10+ total)
+- 🎲 Even more abilities (15+ total)
 - 🏆 Tournaments and leagues
+- 🎬 Replay system
 
 ---
 
@@ -150,10 +183,10 @@ This project follows [Semantic Versioning](https://semver.org/):
 - **MINOR** version: New functionality (backwards compatible)
 - **PATCH** version: Bug fixes (backwards compatible)
 
-Format: `MAJOR.MINOR.PATCH` (e.g., 1.1.0)
+Format: `MAJOR.MINOR.PATCH` (e.g., 1.2.0)
 
 ---
 
 **Maintained by:** [@LeanderKafemann](https://github.com/LeanderKafemann)
 
-**Last Updated:** 2025-10-18 10:50:59 UTC
+**Last Updated:** 2025-10-18 11:17:30 UTC
