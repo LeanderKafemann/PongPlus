@@ -3,27 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PongPlus v1.2.0 - TypeScript Pong Game</title>
+    <title>PongPlus v1.2.1 - TypeScript Pong Game</title>
     <meta name="description" content="Modern TypeScript Pong game with 12 random abilities, background music, easter eggs, and stunning glassmorphism UI">
-    <meta name="version" content="1.2.0">
+    <meta name="version" content="1.2.1">
     <meta name="author" content="LeanderKafemann">
     <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
     <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
     <div id="app">
-        <h1>🏓 PongPlus <span style="font-size: 0.5em; opacity: 0.7;">v1.2.0</span></h1>
+        <h1>🏓 PongPlus <span style="font-size: 0.5em; opacity: 0.7;">v1.2.1</span></h1>
 
         <div id="menu" class="menu">
             <button id="startBtn" class="btn">Start Game</button>
             <button id="leaderboardBtn" class="btn">Leaderboard</button>
             <button id="soundToggle" class="btn">🔊 Sound: ON</button>
-            <p style="margin-top: 20px; opacity: 0.8; font-size: 0.9em;">
-                🎲 Each game features 3 random abilities from 12!
-            </p>
-            <p style="margin-top: 10px; opacity: 0.7; font-size: 0.85em;">
-                🎵 Background music • 🎮 Easter eggs • ✨ Glassmorphism UI
-            </p>
         </div>
 
         <div id="gameContainer" class="hidden">
@@ -60,12 +54,9 @@
             <button id="menuBtn" class="btn">Back to Menu</button>
         </div>
 
-        <footer>
-            <p>© 2025 LeanderKafemann. All rights reserved.</p>
-            <p style="font-size: 0.8em; margin-top: 5px;">Version 1.2.0 • Last Updated: 2025-10-18 11:17:30 UTC</p>
-            <p style="font-size: 0.75em; margin-top: 8px; opacity: 0.8;">
-                🎮 Try the Konami Code! • 🎯 Click title 10 times!
-            </p>
+        <footer id="gameFooter">
+            <p>© 2025 <span class="author-name">LeanderKafemann</span>. All rights reserved.</p>
+            <p style="font-size: 0.8em; margin-top: 5px;">Version 1.2.1 • Last Updated: 2025-01-18</p>
         </footer>
     </div>
 

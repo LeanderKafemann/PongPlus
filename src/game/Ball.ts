@@ -1,6 +1,7 @@
 /**
  * Ball - Represents the game ball with physics and visual effects
  * @copyright 2025 LeanderKafemann. All rights reserved.
+ * @version 1.2.1
  */
 
 export class Ball {
@@ -8,6 +9,8 @@ export class Ball {
   private maxTrailLength: number = 8;
   private readonly maxSpeed: number = 12;
   public isGhost: boolean = false;
+  public isMultiBall: boolean = false;
+  public multiBallId: number = 0;
 
   constructor(
     public x: number,
@@ -28,7 +31,13 @@ export class Ball {
         const alpha = (index / this.trailPositions.length) * 0.4 * Math.min(speedMultiplier, 2);
         const size = this.radius * (0.5 + (index / this.trailPositions.length) * 0.5);
         
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        if (this.isMultiBall) {
+          const color = this.getMultiBallColor();
+          ctx.fillStyle = color.replace('1)', `${alpha})`);
+        } else {
+          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        }
+        
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
         ctx.fill();
@@ -38,9 +47,17 @@ export class Ball {
     // Glow effect when fast (not visible if ghost)
     if (speedMultiplier > 1.5 && !this.isGhost) {
       const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 2);
-      gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      gradient.addColorStop(0.5, 'rgba(255, 200, 200, 0.8)');
-      gradient.addColorStop(1, 'rgba(255, 100, 100, 0)');
+      
+      if (this.isMultiBall) {
+        const color = this.getMultiBallColor();
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, color.replace('1)', '0.8)'));
+        gradient.addColorStop(1, color.replace('1)', '0)'));
+      } else {
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.5, 'rgba(255, 200, 200, 0.8)');
+        gradient.addColorStop(1, 'rgba(255, 100, 100, 0)');
+      }
       
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -58,11 +75,16 @@ export class Ball {
       ctx.fill();
       ctx.stroke();
     } else {
-      ctx.fillStyle = 'white';
+      ctx.fillStyle = this.isMultiBall ? this.getMultiBallColor() : 'white';
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+
+  private getMultiBallColor(): string {
+    const colors = ['rgba(251, 191, 36, 1)', 'rgba(34, 197, 94, 1)', 'rgba(59, 130, 246, 1)'];
+    return colors[this.multiBallId % 3];
   }
 
   update(): void {
@@ -91,6 +113,7 @@ export class Ball {
     this.speedY = (Math.random() - 0.5) * 8;
     this.trailPositions = [];
     this.isGhost = false;
+    this.isMultiBall = false;
   }
 
   getSpeed(): number {
@@ -109,5 +132,21 @@ export class Ball {
 
   setGhost(isGhost: boolean): void {
     this.isGhost = isGhost;
+  }
+
+  clone(id: number): Ball {
+    const clone = new Ball(this.x, this.y, this.radius, this.speedX, this.speedY);
+    clone.isMultiBall = true;
+    clone.multiBallId = id;
+    
+    // Adjust angle slightly for each ball
+    const angle = (id - 1) * 0.5;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    
+    clone.speedX = this.speedX * cos - this.speedY * sin;
+    clone.speedY = this.speedX * sin + this.speedY * cos;
+    
+    return clone;
   }
 }

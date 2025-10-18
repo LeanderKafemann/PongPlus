@@ -1,6 +1,6 @@
 {
   "name": "pongplus",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Modern TypeScript Pong game with 12 random abilities, music, easter eggs, and glassmorphism UI",
   "author": "LeanderKafemann",
   "license": "MIT",

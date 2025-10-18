@@ -1,7 +1,7 @@
 /**
  * PongPlus Styles
  * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.2.0
+ * @version 1.2.1
  */
 
 * {
@@ -19,7 +19,13 @@ body {
     align-items: center;
     padding: 20px;
     color: #fff;
+    overflow-x: hidden;
 }
+
+    /* Prevent arrow keys from scrolling */
+    body.game-active {
+        overflow: hidden;
+    }
 
 #app {
     text-align: center;
@@ -32,6 +38,8 @@ h1 {
     margin-bottom: 30px;
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     animation: glow 2s ease-in-out infinite alternate;
+    cursor: pointer;
+    user-select: none;
 }
 
 @keyframes glow {
@@ -257,6 +265,48 @@ footer {
     padding: 20px;
     border-radius: 15px;
     border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.4s ease;
+    cursor: default;
+}
+
+    footer:hover {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        transform: translateY(-5px) scale(1.02);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    footer .author-name {
+        font-weight: bold;
+        background: linear-gradient(135deg, #667eea, #764ba2, #667eea);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-block;
+        animation: gradient-shift 3s ease infinite;
+    }
+
+@keyframes gradient-shift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+footer .author-name:hover {
+    transform: scale(1.15) rotate(-2deg);
+    filter: brightness(1.4) drop-shadow(0 0 10px rgba(102, 126, 234, 0.8));
+}
+
+footer p:hover {
+    transform: translateX(3px);
 }
 
 .hidden {
@@ -296,6 +346,64 @@ footer {
     }
 }
 
+.disco-mode {
+    animation: disco 0.3s linear infinite;
+}
+
+@keyframes disco {
+    0% {
+        background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+    }
+
+    25% {
+        background: linear-gradient(135deg, #06ffa5 0%, #4361ee 100%);
+    }
+
+    50% {
+        background: linear-gradient(135deg, #ffbe0b 0%, #fb5607 100%);
+    }
+
+    75% {
+        background: linear-gradient(135deg, #3a86ff 0%, #8338ec 100%);
+    }
+
+    100% {
+        background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+    }
+}
+
+.spin {
+    animation: spin 1s ease-in-out;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.bounce {
+    animation: bounce 0.6s;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-30px);
+    }
+
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
 /* Music indicator */
 .music-indicator {
     position: fixed;
@@ -310,12 +418,39 @@ footer {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
 }
 
     .music-indicator:hover {
         background: rgba(255, 255, 255, 0.3);
-        transform: scale(1.1);
+        transform: scale(1.1) rotate(15deg);
     }
+
+/* Secret disco ball */
+.disco-ball {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, #ffffff, #c0c0c0);
+    border-radius: 50%;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.8);
+    animation: disco-ball-spin 2s linear infinite;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+@keyframes disco-ball-spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
 
 @media (max-width: 768px) {
     h1 {
