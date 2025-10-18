@@ -1,1 +1,8 @@
-﻿
+﻿- leaderboard sortierung nach gegner punkten falsch herum
+- ai nutzt multi ball an ungünstigen stellen
+- ai nutzt mini paddle zu exzessiv
+- wenn ai mini paddle auf einen gespielt hat funktioniert magnet nicht mehr
+- ai spielt magnet nicht
+- wenn ai ghost ball spielt kann man den ball immer noch sehen
+- ai nutzt double score nicht
+- schriftzug von power ups muss etwas nach unten bewegt werden
