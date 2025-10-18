@@ -2,3 +2,6 @@
 - schriftzüge wie double score nicht lesbar
 - musik viel schneller
 - magnet buggy (lenkt ball zuweilen hinter eigenen schläger)
+- gegner punktzahl mit ins leaderboard
+- mehr kommentare im code
+- ai benutzt multi- und ghost ball nicht
