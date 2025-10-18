@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] - 2025-10-18
+
+### 🐛 Bug Fixes & Improvements
+
+#### Fixed
+- 🐛 **Reverse Controls** - Now only affects AI, not the player
+- 🐛 **Active Effects Text** - Added black outline for better visibility
+- 🐛 **Magnet Bug** - Fixed ball being pulled behind player's paddle
+- 🐛 **AI Ghost Ball** - AI can now use Ghost Ball ability (25% chance)
+- 🐛 **AI Multi-Ball** - AI can now use Multi-Ball ability (20% chance)
+
+#### Enhanced
+- 🎵 **Music Speed** - Much faster tempo: 100ms instead of 250ms per note
+- 📊 **Leaderboard** - Now shows both player and AI scores (e.g., "5 - 3")
+- 🎯 **Win Condition** - Changed from 5 to 10 points to win
+- 📝 **Code Comments** - Added extensive JSDoc comments throughout
+
+#### Technical
+- 💬 **JSDoc Comments** - All methods now have documentation
+- 🎯 **Magnet Physics** - Only affects balls in front of paddle on player's side
+- 🤖 **AI Ability Usage** - Enhanced AI to use Ghost Ball and Multi-Ball strategically
+- 📊 **Score Display** - Leaderboard entries now include AI score
+
+---
+
 ## [1.3.0] - 2025-01-18
 
 ### 📱 PWA Support & More Content
@@ -38,18 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🖱️ **Menu Hover** - Menu box has hover animation
 - 📊 **Footer Polish** - No more overlapping on hover
 
-#### Fixed
-- 🐛 **Arrow Key Scrolling** - Uses scrollbar instead of arrow keys
-- 🐛 **Footer Overlap** - Fixed z-index and transform issues
-- 🐛 **Game Visibility** - Bottom of game always visible
-- 🐛 **AI Ghost Tracking** - AI now confused when ball is ghost
-
-#### Technical
-- 📦 **vite-plugin-pwa** - Added to dependencies
-- 🔧 **Service Worker** - Full offline caching
-- 📱 **Install Prompt** - beforeinstallprompt event handling
-- 🎯 **Body Scroll Control** - `.game-active` class management
-
 ---
 
 ## [1.2.1] - 2025-01-18
@@ -61,16 +74,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🐛 **Magnet Effect** - Distance-based force calculation
 - 🐛 **Multi-Ball** - Proper ball cloning with colors
 - 🐛 **Multi-Ball Colors** - Yellow, green, blue distinction
-
-#### Enhanced
-- 🎨 **Footer Hover Effects** - Smooth scale and glow
-- 🎨 **Author Name Animation** - Gradient shift
-- 🧹 **Hidden Easter Eggs** - Removed all hints
-
-#### Changed
-- 📅 **Timestamp Format** - YYYY-MM-DD only (no time)
-- 🎮 **Game Active State** - Body class for scroll prevention
-- 🧲 **Magnet Physics** - Distance falloff formula
 
 ---
 
@@ -110,4 +113,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Maintained by:** [@LeanderKafemann](https://github.com/LeanderKafemann)
 
-**Last Updated:** 2025-01-18
+**Last Updated:** 2025-10-18
