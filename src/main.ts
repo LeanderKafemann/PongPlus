@@ -186,11 +186,11 @@ class PongGame {
   private showLeaderboard(): void {
     document.getElementById('menu')!.classList.add('hidden');
     document.getElementById('leaderboard')!.classList.remove('hidden');
-    const tbody = document.getElementById('leaderboardBody')!;
+    const tbody = document.getElementById('leaderboardBody') as HTMLTableSectionElement;
     tbody.innerHTML = '';
     const entries = this.leaderboardManager.getEntries();
     entries.forEach((entry, index) => {
-      const row = tbody.insertRow();
+    const row = tbody.insertRow();
       row.innerHTML = `<td>${index + 1}</td><td>${entry.name}</td><td>${entry.score}</td><td>${entry.date}</td>`;
     });
     if (entries.length === 0) {
