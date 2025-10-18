@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PongPlus - TypeScript Pong Game</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <div id="app">
+    <h1>🏓 PongPlus</h1>
+    <div id="menu" class="menu">
+      <button id="startBtn" class="btn">Start Game</button>
+      <button id="leaderboardBtn" class="btn">Leaderboard</button>
+      <button id="soundToggle" class="btn">🔊 Sound: ON</button>
+    </div>
+    
+    <div id="gameContainer" class="hidden">
+      <div id="score">
+        <span id="playerScore">0</span> : <span id="aiScore">0</span>
+      </div>
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <button id="pauseBtn" class="btn">Pause</button>
+    </div>
+
+    <div id="leaderboard" class="hidden">
+      <h2>🏆 Leaderboard</h2>
+      <table id="leaderboardTable">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Score</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+      <button id="backBtn" class="btn">Back to Menu</button>
+      <button id="clearBtn" class="btn btn-danger">Clear Leaderboard</button>
+    </div>
+
+    <div id="gameOver" class="hidden">
+      <h2 id="gameOverTitle"></h2>
+      <p id="finalScore"></p>
+      <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+      <button id="saveScoreBtn" class="btn">Save Score</button>
+      <button id="menuBtn" class="btn">Back to Menu</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
