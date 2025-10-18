@@ -15,7 +15,6 @@ export class Paddle {
   private abilities: Map<AbilityType, AbilityState> = new Map();
   private assignedAbilities: Ability[] = [];
   private originalHeight: number;
-  private ghostBallActive: boolean = false;
 
   constructor(
     public x: number,
@@ -88,7 +87,7 @@ export class Paddle {
     const indicatorY = this.y + this.height + 10;
     let offsetY = 0;
 
-    this.assignedAbilities.forEach((ability, index) => {
+    this.assignedAbilities.forEach((ability) => {
       const state = this.abilities.get(ability.type);
       if (state && state.cooldown > 0) {
         this.drawCooldownBar(
