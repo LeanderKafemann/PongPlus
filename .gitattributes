@@ -1,4 +1,5 @@
 *.json linguist-language=JSON
+*.json linguist-detectable=true
 
 *.md linguist-language=Markdown
 *.md linguist-detectable=true
@@ -8,3 +9,5 @@
 
 *.yml linguist-language=YAML
 *.yml linguist-detectable=true
+*.yml linguist-documentation=false
+*.yml linguist-vendored=false
