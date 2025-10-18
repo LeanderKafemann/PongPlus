@@ -13,8 +13,7 @@
 ├── public/
 │   └── favicon.svg               # Game icon
 ├── docs/
-│   ├── index.html                # Tutorial page
-│   └── TUTORIAL.md               # Tutorial documentation
+│   └── structure.struct          # Project structure
 ├── index.html                    # Main HTML
 ├── package.json                  # Dependencies
 ├── tsconfig.json                 # TypeScript config
