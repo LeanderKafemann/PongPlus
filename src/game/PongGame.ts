@@ -24,6 +24,8 @@ export class PongGame {
   private soundManager: SoundManager;
   private leaderboardManager: LeaderboardManager;
   private config: GameConfig;
+  private countdown: number = 0;
+  private countdownActive: boolean = false;
 
   constructor() {
     this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
@@ -51,10 +53,29 @@ export class PongGame {
     window.addEventListener('keydown', (e) => { 
       this.keys[e.key] = true;
       
-      if (e.key === ' ' && this.gameRunning && !this.paused) {
+      if (!this.gameRunning || this.paused || this.countdownActive) return;
+      
+      // SPACE - Smash
+      if (e.key === ' ') {
         e.preventDefault();
         if (this.player.smash()) {
           this.soundManager.play('smash');
+        }
+      }
+      
+      // E - Shield
+      if (e.key === 'e' || e.key === 'E') {
+        e.preventDefault();
+        if (this.player.activateShield()) {
+          this.soundManager.play('shield');
+        }
+      }
+      
+      // Q - Speed Boost
+      if (e.key === 'q' || e.key === 'Q') {
+        e.preventDefault();
+        if (this.player.activateSpeedBoost()) {
+          this.soundManager.play('speedBoost');
         }
       }
     });
@@ -109,7 +130,7 @@ export class PongGame {
     }
   }
 
-  private startGame(): void {
+  private async startGame(): Promise<void> {
     this.stopGame();
     
     document.getElementById('menu')!.classList.add('hidden');
@@ -124,11 +145,35 @@ export class PongGame {
     this.paused = false;
     this.gameRunning = true;
     
-    this.gameLoop();
+    // Start countdown
+    await this.runCountdown();
+    
+    if (this.gameRunning) {
+      this.gameLoop();
+    }
+  }
+
+  private async runCountdown(): Promise<void> {
+    this.countdownActive = true;
+    
+    for (let i = 3; i > 0; i--) {
+      this.countdown = i;
+      this.draw();
+      this.soundManager.play('countdown');
+      await this.sleep(1000);
+    }
+    
+    this.countdown = 0;
+    this.countdownActive = false;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private stopGame(): void {
     this.gameRunning = false;
+    this.countdownActive = false;
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
@@ -136,7 +181,7 @@ export class PongGame {
   }
 
   private togglePause(): void {
-    if (!this.gameRunning) return;
+    if (!this.gameRunning || this.countdownActive) return;
     
     this.paused = !this.paused;
     document.getElementById('pauseBtn')!.textContent = this.paused ? 'Resume' : 'Pause';
@@ -144,7 +189,7 @@ export class PongGame {
   }
 
   private gameLoop(): void {
-    if (this.paused || !this.gameRunning) return;
+    if (this.paused || !this.gameRunning || this.countdownActive) return;
     
     this.update();
     this.draw();
@@ -164,7 +209,9 @@ export class PongGame {
     else if (aiCenter > this.ball.y + 35) this.ai.move(-1, this.canvas.height);
 
     if (Math.abs(this.ball.x - this.ai.x) < 100 && this.ball.getSpeed() > 6) {
-      this.ai.smash();
+      const random = Math.random();
+      if (random < 0.3) this.ai.smash();
+      else if (random < 0.5) this.ai.activateShield();
     }
 
     this.ball.update();
@@ -181,17 +228,23 @@ export class PongGame {
     if (playerCollision || aiCollision) {
       const paddle = playerCollision ? this.player : this.ai;
       
-      const hitPos = (this.ball.y - paddle.y) / paddle.height;
-      this.ball.speedY = (hitPos - 0.5) * 10;
-      this.ball.speedX *= -1;
-      
-      if (paddle.getIsSmashing()) {
-        this.ball.speedX *= 1.5;
-        this.ball.speedY *= 1.2;
-        this.soundManager.play('smash');
+      // Shield blocks the ball completely
+      if (paddle.hasShield()) {
+        this.ball.speedX *= -1;
+        this.soundManager.play('shield');
       } else {
-        this.ball.speedX *= 1.05;
-        this.soundManager.play('paddleHit');
+        const hitPos = (this.ball.y - paddle.y) / paddle.height;
+        this.ball.speedY = (hitPos - 0.5) * 10;
+        this.ball.speedX *= -1;
+        
+        if (paddle.getIsSmashing()) {
+          this.ball.speedX *= 1.5;
+          this.ball.speedY *= 1.2;
+          this.soundManager.play('smash');
+        } else {
+          this.ball.speedX *= 1.05;
+          this.soundManager.play('paddleHit');
+        }
       }
       
       if (playerCollision) {
@@ -236,6 +289,7 @@ export class PongGame {
     this.ctx.fillStyle = '#1a1a2e';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
+    // Center line
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     this.ctx.setLineDash([10, 10]);
     this.ctx.beginPath();
@@ -244,13 +298,72 @@ export class PongGame {
     this.ctx.stroke();
     this.ctx.setLineDash([]);
     
+    // Game objects
     this.player.draw(this.ctx);
     this.ai.draw(this.ctx);
     this.ball.draw(this.ctx);
     
+    // Speed indicator
+    this.drawSpeedometer();
+    
+    // Controls hint
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     this.ctx.font = '14px Arial';
-    this.ctx.fillText('Press SPACE to smash!', 10, this.canvas.height - 10);
+    this.ctx.fillText('Q: Speed Boost | SPACE: Smash | E: Shield', 10, this.canvas.height - 10);
+    
+    // Countdown overlay
+    if (this.countdownActive && this.countdown > 0) {
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = 'bold 120px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.textBaseline = 'middle';
+      this.ctx.fillText(this.countdown.toString(), this.canvas.width / 2, this.canvas.height / 2);
+      
+      this.ctx.font = '24px Arial';
+      this.ctx.fillText('Get Ready!', this.canvas.width / 2, this.canvas.height / 2 + 80);
+      
+      this.ctx.textAlign = 'left';
+      this.ctx.textBaseline = 'alphabetic';
+    }
+  }
+
+  private drawSpeedometer(): void {
+    const speed = this.ball.getSpeed();
+    const maxDisplaySpeed = 15;
+    const speedPercent = Math.min(speed / maxDisplaySpeed, 1);
+    
+    const x = this.canvas.width / 2 - 100;
+    const y = 20;
+    const width = 200;
+    const height = 20;
+    
+    // Background
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    this.ctx.fillRect(x, y, width, height);
+    
+    // Speed bar
+    const gradient = this.ctx.createLinearGradient(x, y, x + width, y);
+    gradient.addColorStop(0, '#4ade80');
+    gradient.addColorStop(0.5, '#fbbf24');
+    gradient.addColorStop(1, '#ef4444');
+    
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(x, y, width * speedPercent, height);
+    
+    // Border
+    this.ctx.strokeStyle = 'white';
+    this.ctx.lineWidth = 2;
+    this.ctx.strokeRect(x, y, width, height);
+    
+    // Label
+    this.ctx.fillStyle = 'white';
+    this.ctx.font = 'bold 12px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(`SPEED: ${speed.toFixed(1)}`, this.canvas.width / 2, y + height + 15);
+    this.ctx.textAlign = 'left';
   }
 
   private updateScore(): void {

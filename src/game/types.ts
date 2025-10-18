@@ -15,3 +15,17 @@ export interface GameConfig {
   winScore: number;
   paddleSpeed: number;
 }
+
+export enum AbilityType {
+  SMASH = 'smash',
+  SHIELD = 'shield',
+  SPEED_BOOST = 'speedBoost'
+}
+
+export interface Ability {
+  type: AbilityType;
+  name: string;
+  cooldown: number;
+  duration: number;
+  key: string;
+}

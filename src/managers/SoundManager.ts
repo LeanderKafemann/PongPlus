@@ -18,6 +18,9 @@ export class SoundManager {
     this.sounds.wallHit = this.createTone(220, 0.1);
     this.sounds.score = this.createTone(330, 0.3);
     this.sounds.smash = this.createTone(550, 0.15);
+    this.sounds.shield = this.createTone(660, 0.12);
+    this.sounds.speedBoost = this.createTone(880, 0.1);
+    this.sounds.countdown = this.createTone(400, 0.08);
   }
 
   private createTone(frequency: number, duration: number): AudioBuffer {
