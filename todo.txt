@@ -1,0 +1,11 @@
+﻿Uncaught TypeError: a.score.split is not a function
+    addEntry https://leanderkafemann.github.io/PongPlus/assets/index-Bvc10vC_.js:1
+    addEntry https://leanderkafemann.github.io/PongPlus/assets/index-Bvc10vC_.js:1
+    saveScore https://leanderkafemann.github.io/PongPlus/assets/index-Bvc10vC_.js:3
+    setupUI https://leanderkafemann.github.io/PongPlus/assets/index-Bvc10vC_.js:1
+beim Leaderboard speichern
+
+❌ Service Worker registration failed: TypeError: ServiceWorker script at https://leanderkafemann.github.io/sw.js for scope https://leanderkafemann.github.io/ encountered an error during installation.
+in der konsole
+
+- ai nutzt teleportations fähigkeit exzessiv und dumm

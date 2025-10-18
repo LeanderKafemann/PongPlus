@@ -2,6 +2,9 @@
 
 All notable changes to PongPlus will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ---
 
 ## [1.3.2] - 2025-01-18
@@ -21,26 +24,45 @@ All notable changes to PongPlus will be documented in this file.
 ---
 
 ## [1.3.1] - 2025-01-18
+- Fixed reverse controls (AI only), magnet bug, active effects text visibility
+- AI can now use Ghost Ball and Multi-Ball
+- Music 2.5x faster, win score changed to 10
+- Added JSDoc comments throughout codebase
 
-### 🐛 Bug Fixes & Improvements
+## [1.3.0] - 2025-01-18
+- PWA support with offline capability
+- Added 3 new abilities (Mini Paddle, Gravity, Super Smash) - total 15
+- Added 5 new easter eggs, button hover effects
+- Faster music, custom scrollbar
 
-#### Fixed
-- 🐛 **Reverse Controls** - Now only affects AI, not the player
-- 🐛 **Active Effects Text** - Added black outline for better visibility
-- 🐛 **Magnet Bug** - Fixed ball being pulled behind player's paddle
-- 🐛 **AI Ghost Ball** - AI can now use Ghost Ball ability (25% chance)
-- 🐛 **AI Multi-Ball** - AI can now use Multi-Ball ability (20% chance)
+## [1.2.1] - 2025-01-18
+- Fixed arrow key scrolling, magnet physics, multi-ball
+- Enhanced footer hover effects, removed easter egg hints
 
-#### Enhanced
-- 🎵 **Music Speed** - Much faster tempo: 100ms instead of 250ms per note
-- 📊 **Leaderboard** - Now shows both player and AI scores (e.g., "5 - 3")
-- 🎯 **Win Condition** - Changed from 5 to 10 points to win
-- 📝 **Code Comments** - Added extensive JSDoc comments throughout
+## [1.2.0] - 2025-01-18
+- Added background music, 4 new abilities (total 12)
+- Glassmorphism UI, 8 easter eggs
+- Arrow key support, visual effect overlays
+
+## [1.1.0] - 2025-01-18
+- Random ability system (8 abilities)
+- Dynamic key bindings, AI ability usage
+- Enhanced README
+
+## [1.0.0] - 2025-01-18
+- Initial release with core Pong gameplay
+- 3 fixed abilities, AI opponent
+- Visual effects, sound system, leaderboard
 
 ---
 
-## [1.3.0] - 2025-01-18
+## Version Numbering
 
-### 📱 PWA Support & More Content
+This project follows [Semantic Versioning](https://semver.org/):
+- **MAJOR.MINOR.PATCH** (e.g., 1.3.2)
 
-(... rest bleibt gleich ...)
+---
+
+**Maintained by:** [@LeanderKafemann](https://github.com/LeanderKafemann)
+
+**Last Updated:** 2025-01-18
