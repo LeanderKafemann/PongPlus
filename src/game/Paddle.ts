@@ -5,20 +5,20 @@
 
 export class Paddle {
   private smashCooldown: number = 0;
-  private readonly smashCooldownMax: number = 120; // 2 seconds
+  private readonly smashCooldownMax: number = 120;
   private isSmashing: boolean = false;
   
   private shieldCooldown: number = 0;
-  private readonly shieldCooldownMax: number = 300; // 5 seconds
+  private readonly shieldCooldownMax: number = 300;
   private shieldActive: boolean = false;
   private shieldDuration: number = 0;
-  private readonly shieldDurationMax: number = 90; // 1.5 seconds
+  private readonly shieldDurationMax: number = 90;
   
   private speedBoostCooldown: number = 0;
-  private readonly speedBoostCooldownMax: number = 240; // 4 seconds
+  private readonly speedBoostCooldownMax: number = 240;
   private speedBoostActive: boolean = false;
   private speedBoostDuration: number = 0;
-  private readonly speedBoostDurationMax: number = 120; // 2 seconds
+  private readonly speedBoostDurationMax: number = 120;
 
   constructor(
     public x: number,
@@ -84,11 +84,9 @@ export class Paddle {
   }
 
   update(): void {
-    // Update smash
     if (this.smashCooldown > 0) this.smashCooldown--;
     if (this.isSmashing) this.isSmashing = false;
     
-    // Update shield
     if (this.shieldActive) {
       this.shieldDuration--;
       if (this.shieldDuration <= 0) {
@@ -97,7 +95,6 @@ export class Paddle {
     }
     if (this.shieldCooldown > 0) this.shieldCooldown--;
     
-    // Update speed boost
     if (this.speedBoostActive) {
       this.speedBoostDuration--;
       if (this.speedBoostDuration <= 0) {

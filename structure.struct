@@ -1,0 +1,23 @@
+﻿PongPlus/
+├── src/
+│   ├── main.ts                    # Entry point
+│   ├── style.css                  # Styles
+│   ├── game/
+│   │   ├── PongGame.ts           # Main game logic
+│   │   ├── Ball.ts               # Ball class with physics
+│   │   ├── Paddle.ts             # Paddle with abilities
+│   │   └── types.ts              # TypeScript interfaces
+│   └── managers/
+│       ├── SoundManager.ts       # Audio management
+│       └── LeaderboardManager.ts # Score persistence
+├── public/
+│   └── favicon.svg               # Game icon
+├── docs/
+│   ├── index.html                # Tutorial page
+│   └── TUTORIAL.md               # Tutorial documentation
+├── index.html                    # Main HTML
+├── package.json                  # Dependencies
+├── tsconfig.json                 # TypeScript config
+├── vite.config.ts               # Vite config
+├── CHANGELOG.md                  # Version history
+└── README.md                     # This file

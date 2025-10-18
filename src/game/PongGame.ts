@@ -55,7 +55,6 @@ export class PongGame {
       
       if (!this.gameRunning || this.paused || this.countdownActive) return;
       
-      // SPACE - Smash
       if (e.key === ' ') {
         e.preventDefault();
         if (this.player.smash()) {
@@ -63,7 +62,6 @@ export class PongGame {
         }
       }
       
-      // E - Shield
       if (e.key === 'e' || e.key === 'E') {
         e.preventDefault();
         if (this.player.activateShield()) {
@@ -71,7 +69,6 @@ export class PongGame {
         }
       }
       
-      // Q - Speed Boost
       if (e.key === 'q' || e.key === 'Q') {
         e.preventDefault();
         if (this.player.activateSpeedBoost()) {
@@ -145,7 +142,6 @@ export class PongGame {
     this.paused = false;
     this.gameRunning = true;
     
-    // Start countdown
     await this.runCountdown();
     
     if (this.gameRunning) {
@@ -228,7 +224,6 @@ export class PongGame {
     if (playerCollision || aiCollision) {
       const paddle = playerCollision ? this.player : this.ai;
       
-      // Shield blocks the ball completely
       if (paddle.hasShield()) {
         this.ball.speedX *= -1;
         this.soundManager.play('shield');
@@ -289,7 +284,6 @@ export class PongGame {
     this.ctx.fillStyle = '#1a1a2e';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
-    // Center line
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     this.ctx.setLineDash([10, 10]);
     this.ctx.beginPath();
@@ -298,20 +292,16 @@ export class PongGame {
     this.ctx.stroke();
     this.ctx.setLineDash([]);
     
-    // Game objects
     this.player.draw(this.ctx);
     this.ai.draw(this.ctx);
     this.ball.draw(this.ctx);
     
-    // Speed indicator
     this.drawSpeedometer();
     
-    // Controls hint
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     this.ctx.font = '14px Arial';
     this.ctx.fillText('Q: Speed Boost | SPACE: Smash | E: Shield', 10, this.canvas.height - 10);
     
-    // Countdown overlay
     if (this.countdownActive && this.countdown > 0) {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -340,11 +330,9 @@ export class PongGame {
     const width = 200;
     const height = 20;
     
-    // Background
     this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
     this.ctx.fillRect(x, y, width, height);
     
-    // Speed bar
     const gradient = this.ctx.createLinearGradient(x, y, x + width, y);
     gradient.addColorStop(0, '#4ade80');
     gradient.addColorStop(0.5, '#fbbf24');
@@ -353,12 +341,10 @@ export class PongGame {
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(x, y, width * speedPercent, height);
     
-    // Border
     this.ctx.strokeStyle = 'white';
     this.ctx.lineWidth = 2;
     this.ctx.strokeRect(x, y, width, height);
     
-    // Label
     this.ctx.fillStyle = 'white';
     this.ctx.font = 'bold 12px Arial';
     this.ctx.textAlign = 'center';

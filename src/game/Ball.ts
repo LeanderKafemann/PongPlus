@@ -1,5 +1,5 @@
 /**
- * Ball - Represents the game ball with physics
+ * Ball - Represents the game ball with physics and visual effects
  * @copyright 2025 LeanderKafemann. All rights reserved.
  */
 
