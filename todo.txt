@@ -1,0 +1,2 @@
+- change controls hat keinen effekt auf ai
+- schriftzüge wie double score nicht lesbar

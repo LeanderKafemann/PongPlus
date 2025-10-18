@@ -1,7 +1,7 @@
 ﻿/**
  * AbilitySystem - Manages random ability selection
  * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.2.0
+ * @version 1.3.0
  */
 
 export enum AbilityType {
@@ -16,7 +16,10 @@ export enum AbilityType {
   REVERSE_CONTROLS = 'reverseControls',
   MAGNET = 'magnet',
   DOUBLE_SCORE = 'doubleScore',
-  FREEZE = 'freeze'
+  FREEZE = 'freeze',
+  MINI_PADDLE = 'miniPaddle',
+  GRAVITY = 'gravity',
+  SUPER_SMASH = 'superSmash'
 }
 
 export interface Ability {
@@ -147,15 +150,41 @@ export const ALL_ABILITIES: Ability[] = [
     key: 'X',
     cooldownMax: 480,
     duration: 90
+  },
+  {
+    type: AbilityType.MINI_PADDLE,
+    name: 'Mini Paddle',
+    description: 'Opponent paddle -50% for 3s',
+    icon: '🔻',
+    color: '#fb923c',
+    key: 'N',
+    cooldownMax: 450,
+    duration: 180
+  },
+  {
+    type: AbilityType.GRAVITY,
+    name: 'Gravity',
+    description: 'Ball curves downward for 2s',
+    icon: '🌍',
+    color: '#22d3ee',
+    key: 'Y',
+    cooldownMax: 540,
+    duration: 120
+  },
+  {
+    type: AbilityType.SUPER_SMASH,
+    name: 'Super Smash',
+    description: '+100% ball speed!',
+    icon: '💥',
+    color: '#dc2626',
+    key: 'B',
+    cooldownMax: 900
   }
 ];
 
 export class AbilitySystem {
   private selectedAbilities: Ability[] = [];
 
-  /**
-   * Randomly selects 3 unique abilities for the game
-   */
   selectRandomAbilities(): Ability[] {
     const shuffled = [...ALL_ABILITIES].sort(() => Math.random() - 0.5);
     this.selectedAbilities = shuffled.slice(0, 3);

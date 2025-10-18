@@ -1,7 +1,7 @@
 {
   "name": "pongplus",
-  "version": "1.2.1",
-  "description": "Modern TypeScript Pong game with 12 random abilities, music, easter eggs, and glassmorphism UI",
+  "version": "1.3.0",
+  "description": "Progressive Web App: Modern TypeScript Pong game with 15+ abilities, music, and easter eggs",
   "author": "LeanderKafemann",
   "license": "MIT",
   "repository": {
@@ -17,7 +17,8 @@
   },
   "devDependencies": {
     "typescript": "^5.0.2",
-    "vite": "^5.0.0"
+    "vite": "^5.0.0",
+    "vite-plugin-pwa": "^0.17.0"
   },
   "keywords": [
     "pong",
@@ -26,7 +27,10 @@
     "canvas",
     "html5",
     "abilities",
-    "random-abilities",
+    "pwa",
+    "progressive-web-app",
+    "installable",
+    "offline",
     "web-game",
     "game-development",
     "music",

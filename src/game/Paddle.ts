@@ -1,6 +1,7 @@
 /**
  * Paddle - Represents a player or AI controlled paddle
  * @copyright 2025 LeanderKafemann. All rights reserved.
+ * @version 1.3.0
  */
 
 import type { Ability, AbilityType } from './AbilitySystem';
@@ -15,6 +16,7 @@ export class Paddle {
   private abilities: Map<AbilityType, AbilityState> = new Map();
   private assignedAbilities: Ability[] = [];
   private originalHeight: number;
+  private miniPaddleActive: boolean = false;
 
   constructor(
     public x: number,
@@ -26,9 +28,6 @@ export class Paddle {
     this.originalHeight = height;
   }
 
-  /**
-   * Assigns the random abilities for this game
-   */
   setAbilities(abilities: Ability[]): void {
     this.assignedAbilities = abilities;
     abilities.forEach(ability => {
@@ -45,7 +44,6 @@ export class Paddle {
   }
 
   draw(ctx: CanvasRenderingContext2D): void {
-    // Shield effect
     const shieldState = this.abilities.get('shield' as AbilityType);
     if (shieldState?.active) {
       const gradient = ctx.createRadialGradient(
@@ -63,23 +61,23 @@ export class Paddle {
       ctx.fillRect(this.x - 5, this.y - 5, this.width + 10, this.height + 10);
     }
 
-    // Determine paddle color based on active abilities
     let paddleColor = 'white';
     const smashState = this.abilities.get('smash' as AbilityType);
     const speedState = this.abilities.get('speedBoost' as AbilityType);
     const giantState = this.abilities.get('giantPaddle' as AbilityType);
+    const superSmashState = this.abilities.get('superSmash' as AbilityType);
     
-    if (smashState?.active) paddleColor = '#ff6b6b';
+    if (superSmashState?.active) paddleColor = '#dc2626';
+    else if (smashState?.active) paddleColor = '#ff6b6b';
     else if (speedState?.active) paddleColor = '#ffeb3b';
     else if (giantState?.active) paddleColor = '#f97316';
+    else if (this.miniPaddleActive) paddleColor = '#fb923c';
     
-    // Main paddle
     ctx.fillStyle = paddleColor;
     ctx.beginPath();
     ctx.roundRect(this.x, this.y, this.width, this.height, this.width / 2);
     ctx.fill();
 
-    // Cooldown indicators
     this.drawCooldownIndicators(ctx);
   }
 
@@ -138,7 +136,6 @@ export class Paddle {
         if (state.duration <= 0) {
           state.active = false;
           
-          // Reset size for giant paddle
           if (type === 'giantPaddle') {
             this.height = this.originalHeight;
           }
@@ -159,17 +156,25 @@ export class Paddle {
       state.active = true;
       state.duration = ability.duration;
       
-      // Special handling for giant paddle
       if (type === 'giantPaddle') {
         this.height = this.originalHeight * 1.5;
       }
     } else {
       state.active = true;
-      // For instant abilities, deactivate immediately
       setTimeout(() => { state.active = false; }, 50);
     }
     
     return true;
+  }
+
+  applyMiniPaddle(): void {
+    this.miniPaddleActive = true;
+    this.height = this.originalHeight * 0.5;
+    
+    setTimeout(() => {
+      this.miniPaddleActive = false;
+      this.height = this.originalHeight;
+    }, 3000);
   }
 
   teleport(canvasHeight: number): void {
@@ -183,6 +188,11 @@ export class Paddle {
 
   isSmashing(): boolean {
     const state = this.abilities.get('smash' as AbilityType);
+    return state?.active || false;
+  }
+
+  isSuperSmashing(): boolean {
+    const state = this.abilities.get('superSmash' as AbilityType);
     return state?.active || false;
   }
 

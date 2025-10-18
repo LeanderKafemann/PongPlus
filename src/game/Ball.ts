@@ -1,7 +1,7 @@
 /**
  * Ball - Represents the game ball with physics and visual effects
  * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.2.1
+ * @version 1.3.0
  */
 
 export class Ball {
@@ -11,6 +11,7 @@ export class Ball {
   public isGhost: boolean = false;
   public isMultiBall: boolean = false;
   public multiBallId: number = 0;
+  public gravityActive: boolean = false;
 
   constructor(
     public x: number,
@@ -25,7 +26,6 @@ export class Ball {
     const initialSpeed = Math.sqrt(4 * 4 + 4 * 4);
     const speedMultiplier = currentSpeed / initialSpeed;
 
-    // Draw trail (not visible if ghost)
     if (!this.isGhost) {
       this.trailPositions.forEach((pos, index) => {
         const alpha = (index / this.trailPositions.length) * 0.4 * Math.min(speedMultiplier, 2);
@@ -44,7 +44,6 @@ export class Ball {
       });
     }
 
-    // Glow effect when fast (not visible if ghost)
     if (speedMultiplier > 1.5 && !this.isGhost) {
       const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * 2);
       
@@ -65,7 +64,6 @@ export class Ball {
       ctx.fill();
     }
 
-    // Main ball (semi-transparent if ghost)
     if (this.isGhost) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
@@ -88,6 +86,11 @@ export class Ball {
   }
 
   update(): void {
+    // Apply gravity if active
+    if (this.gravityActive) {
+      this.speedY += 0.15;
+    }
+
     // Limit speed
     const currentSpeed = Math.sqrt(this.speedX * this.speedX + this.speedY * this.speedY);
     if (currentSpeed > this.maxSpeed) {
@@ -114,6 +117,7 @@ export class Ball {
     this.trailPositions = [];
     this.isGhost = false;
     this.isMultiBall = false;
+    this.gravityActive = false;
   }
 
   getSpeed(): number {
@@ -139,7 +143,6 @@ export class Ball {
     clone.isMultiBall = true;
     clone.multiBallId = id;
     
-    // Adjust angle slightly for each ball
     const angle = (id - 1) * 0.5;
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
