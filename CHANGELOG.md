@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2025-10-18
+
+### 🎲 Random Ability System
+
+#### Added
+- ✅ **8 Unique Abilities** - Expanded from 3 to 8 different abilities
+- ✅ **Random Selection System** - Each game randomly selects 3 abilities
+- ✅ **New Abilities:**
+  - 🟣 **Teleport (R)** - Instant center repositioning, 8s cooldown
+  - 🟢 **Slow Motion (F)** - 50% ball speed for 2s, 10s cooldown
+  - 🟡 **Multi-Ball (T)** - Split ball into 3 for 3s, 12s cooldown
+  - 🟠 **Giant Paddle (G)** - +50% paddle size for 4s, 8s cooldown
+  - ⚪ **Ghost Ball (V)** - Ball invisible for 1.5s, 7s cooldown
+
+#### Enhanced
+- 🎨 **Ability Display** - Shows selected abilities at game start
+- 🎯 **Dynamic Key Bindings** - Keys adapt to selected abilities
+- 🤖 **AI Ability Usage** - AI can now use all random abilities strategically
+- 📊 **Visual Feedback** - Each ability has unique color and icon
+- 🔊 **New Sound Effects** - Added sounds for all new abilities
+
+#### Improved
+- 📖 **Massively Enhanced README** - Professional badges, better structure
+- 🎨 **Better Documentation** - More examples, clearer explanations
+- 📊 **Version Display** - Version shown in title, footer, and console
+- 🎮 **Gameplay Variety** - No two games are the same!
+
+#### Technical
+- 📦 **New Module:** `AbilitySystem.ts` - Manages random ability selection
+- 🎯 **Type Safety** - Full TypeScript support for all abilities
+- 🧩 **Modular Design** - Easy to add more abilities in the future
+
+---
+
 ## [1.0.0] - 2025-10-18
 
 ### 🎉 Initial Release
@@ -25,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Spin mechanics based on paddle hit position
   - Speed limiting to prevent tunneling
 
-- 🎯 **Special Abilities System**
+- 🎯 **Special Abilities System** (3 fixed)
   - Smash (SPACE): 50% speed boost, 2s cooldown
   - Shield (E): 1.5s invincibility, 5s cooldown
   - Speed Boost (Q): 80% faster movement, 4s cooldown
@@ -91,9 +125,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🐛 Fixed TypeScript compilation errors with HTMLTableSectionElement
 - 🐛 Prevented multiple collisions per paddle hit
 
-#### Known Issues
-- None at this time
-
 ---
 
 ## [Unreleased]
@@ -107,6 +138,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🎵 Background music
 - 💾 Cloud save synchronization
 - 🌍 Multiple languages support
+- 🎲 More abilities (10+ total)
+- 🏆 Tournaments and leagues
 
 ---
 
@@ -117,10 +150,10 @@ This project follows [Semantic Versioning](https://semver.org/):
 - **MINOR** version: New functionality (backwards compatible)
 - **PATCH** version: Bug fixes (backwards compatible)
 
-Format: `MAJOR.MINOR.PATCH` (e.g., 1.0.0)
+Format: `MAJOR.MINOR.PATCH` (e.g., 1.1.0)
 
 ---
 
 **Maintained by:** [@LeanderKafemann](https://github.com/LeanderKafemann)
 
-**Last Updated:** 2025-10-18 10:23:02 UTC
+**Last Updated:** 2025-10-18 10:50:59 UTC

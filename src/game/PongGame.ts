@@ -1,12 +1,14 @@
 ﻿/**
- * PongGame - Main game logic
+ * PongGame - Main game logic with random abilities
  * @copyright 2025 LeanderKafemann. All rights reserved.
+ * @version 1.1.0
  */
 
 import { Ball } from './Ball';
 import { Paddle } from './Paddle';
 import { SoundManager } from '../managers/SoundManager';
 import { LeaderboardManager } from '../managers/LeaderboardManager';
+import { AbilitySystem, AbilityType, type Ability } from './AbilitySystem';
 import type { GameConfig } from './types';
 
 export class PongGame {
@@ -23,15 +25,18 @@ export class PongGame {
   private gameRunning: boolean = false;
   private soundManager: SoundManager;
   private leaderboardManager: LeaderboardManager;
+  private abilitySystem: AbilitySystem;
   private config: GameConfig;
   private countdown: number = 0;
   private countdownActive: boolean = false;
+  private slowMotionActive: boolean = false;
 
   constructor() {
     this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     this.ctx = this.canvas.getContext('2d')!;
     this.soundManager = new SoundManager();
     this.leaderboardManager = new LeaderboardManager();
+    this.abilitySystem = new AbilitySystem();
 
     this.config = {
       canvasWidth: this.canvas.width,
@@ -55,28 +60,67 @@ export class PongGame {
       
       if (!this.gameRunning || this.paused || this.countdownActive) return;
       
-      if (e.key === ' ') {
-        e.preventDefault();
-        if (this.player.smash()) {
-          this.soundManager.play('smash');
-        }
-      }
+      const abilities = this.player.getAssignedAbilities();
       
-      if (e.key === 'e' || e.key === 'E') {
-        e.preventDefault();
-        if (this.player.activateShield()) {
-          this.soundManager.play('shield');
+      abilities.forEach(ability => {
+        if (this.isAbilityKey(e.key, ability.key)) {
+          e.preventDefault();
+          this.activatePlayerAbility(ability.type);
         }
-      }
-      
-      if (e.key === 'q' || e.key === 'Q') {
-        e.preventDefault();
-        if (this.player.activateSpeedBoost()) {
-          this.soundManager.play('speedBoost');
-        }
-      }
+      });
     });
     window.addEventListener('keyup', (e) => { this.keys[e.key] = false; });
+  }
+
+  private isAbilityKey(pressedKey: string, abilityKey: string): boolean {
+    if (abilityKey === 'SPACE') return pressedKey === ' ';
+    return pressedKey.toLowerCase() === abilityKey.toLowerCase();
+  }
+
+  private activatePlayerAbility(type: AbilityType): void {
+    const activated = this.player.activateAbility(type);
+    if (!activated) return;
+
+    switch (type) {
+      case AbilityType.SMASH:
+        this.ball.speedX *= 1.5;
+        this.ball.speedY *= 1.2;
+        this.soundManager.play('smash');
+        break;
+      case AbilityType.SHIELD:
+        this.soundManager.play('shield');
+        break;
+      case AbilityType.SPEED_BOOST:
+        this.soundManager.play('speedBoost');
+        break;
+      case AbilityType.TELEPORT:
+        this.player.teleport(this.canvas.height);
+        this.soundManager.play('teleport');
+        break;
+      case AbilityType.SLOW_MOTION:
+        this.slowMotionActive = true;
+        this.ball.applySlowMotion();
+        this.soundManager.play('slowMotion');
+        setTimeout(() => {
+          this.slowMotionActive = false;
+          this.ball.removeSlowMotion();
+        }, 2000);
+        break;
+      case AbilityType.GHOST_BALL:
+        this.ball.setGhost(true);
+        this.soundManager.play('ghostBall');
+        setTimeout(() => {
+          this.ball.setGhost(false);
+        }, 1500);
+        break;
+      case AbilityType.GIANT_PADDLE:
+        this.soundManager.play('giantPaddle');
+        break;
+      case AbilityType.MULTI_BALL:
+        // Multi-ball would require more complex implementation
+        this.soundManager.play('multiBall');
+        break;
+    }
   }
 
   private setupUI(): void {
@@ -130,6 +174,14 @@ export class PongGame {
   private async startGame(): Promise<void> {
     this.stopGame();
     
+    // Select random abilities
+    const selectedAbilities = this.abilitySystem.selectRandomAbilities();
+    this.player.setAbilities(selectedAbilities);
+    this.ai.setAbilities(selectedAbilities);
+    
+    // Display selected abilities
+    this.displaySelectedAbilities(selectedAbilities);
+    
     document.getElementById('menu')!.classList.add('hidden');
     document.getElementById('gameContainer')!.classList.remove('hidden');
     document.getElementById('leaderboard')!.classList.add('hidden');
@@ -147,6 +199,17 @@ export class PongGame {
     if (this.gameRunning) {
       this.gameLoop();
     }
+  }
+
+  private displaySelectedAbilities(abilities: Ability[]): void {
+    const container = document.getElementById('abilityDisplay');
+    if (!container) return;
+    
+    container.innerHTML = abilities.map(a => 
+      `<div style="display: inline-block; margin: 0 10px; padding: 5px 10px; background: ${a.color}; color: white; border-radius: 5px; font-size: 14px;">
+        ${a.icon} ${a.name} (${a.key})
+      </div>`
+    ).join('');
   }
 
   private async runCountdown(): Promise<void> {
@@ -200,24 +263,39 @@ export class PongGame {
     this.player.update();
     this.ai.update();
 
+    // AI logic
     const aiCenter = this.ai.y + this.ai.height / 2;
     if (aiCenter < this.ball.y - 35) this.ai.move(1, this.canvas.height);
     else if (aiCenter > this.ball.y + 35) this.ai.move(-1, this.canvas.height);
 
+    // AI ability usage
     if (Math.abs(this.ball.x - this.ai.x) < 100 && this.ball.getSpeed() > 6) {
       const random = Math.random();
-      if (random < 0.3) this.ai.smash();
-      else if (random < 0.5) this.ai.activateShield();
+      const abilities = this.ai.getAssignedAbilities();
+      
+      if (random < 0.2 && abilities.some(a => a.type === AbilityType.SHIELD)) {
+        this.ai.activateAbility(AbilityType.SHIELD);
+      } else if (random < 0.3 && abilities.some(a => a.type === AbilityType.SMASH)) {
+        if (this.ai.activateAbility(AbilityType.SMASH)) {
+          this.ball.speedX *= 1.5;
+          this.ball.speedY *= 1.2;
+        }
+      } else if (random < 0.35 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
+        this.ai.activateAbility(AbilityType.TELEPORT);
+        this.ai.teleport(this.canvas.height);
+      }
     }
 
     this.ball.update();
 
+    // Wall collision
     if (this.ball.y - this.ball.radius <= 0 || this.ball.y + this.ball.radius >= this.canvas.height) {
       this.ball.speedY *= -1;
       this.ball.y = Math.max(this.ball.radius, Math.min(this.canvas.height - this.ball.radius, this.ball.y));
       this.soundManager.play('wallHit');
     }
 
+    // Paddle collision
     const playerCollision = this.checkCollision(this.ball, this.player);
     const aiCollision = this.checkCollision(this.ball, this.ai);
 
@@ -232,7 +310,7 @@ export class PongGame {
         this.ball.speedY = (hitPos - 0.5) * 10;
         this.ball.speedX *= -1;
         
-        if (paddle.getIsSmashing()) {
+        if (paddle.isSmashing()) {
           this.ball.speedX *= 1.5;
           this.ball.speedY *= 1.2;
           this.soundManager.play('smash');
@@ -249,6 +327,7 @@ export class PongGame {
       }
     }
 
+    // Scoring
     if (this.ball.x - this.ball.radius <= 0) {
       this.aiScore++;
       this.soundManager.play('score');
@@ -284,6 +363,12 @@ export class PongGame {
     this.ctx.fillStyle = '#1a1a2e';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
+    // Slow motion effect overlay
+    if (this.slowMotionActive) {
+      this.ctx.fillStyle = 'rgba(76, 222, 128, 0.1)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     this.ctx.setLineDash([10, 10]);
     this.ctx.beginPath();
@@ -297,10 +382,7 @@ export class PongGame {
     this.ball.draw(this.ctx);
     
     this.drawSpeedometer();
-    
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    this.ctx.font = '14px Arial';
-    this.ctx.fillText('Q: Speed Boost | SPACE: Smash | E: Shield', 10, this.canvas.height - 10);
+    this.drawAbilityHints();
     
     if (this.countdownActive && this.countdown > 0) {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -318,6 +400,15 @@ export class PongGame {
       this.ctx.textAlign = 'left';
       this.ctx.textBaseline = 'alphabetic';
     }
+  }
+
+  private drawAbilityHints(): void {
+    const abilities = this.player.getAssignedAbilities();
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    this.ctx.font = '14px Arial';
+    
+    const hints = abilities.map(a => `${a.key}: ${a.name}`).join(' | ');
+    this.ctx.fillText(hints, 10, this.canvas.height - 10);
   }
 
   private drawSpeedometer(): void {

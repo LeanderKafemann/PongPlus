@@ -1,7 +1,7 @@
 {
   "name": "pongplus",
-  "version": "1.0.0",
-  "description": "A modern TypeScript Pong game with abilities and visual effects",
+  "version": "1.1.0",
+  "description": "Modern TypeScript Pong game with random abilities, visual effects, and AI opponent",
   "author": "LeanderKafemann",
   "license": "MIT",
   "repository": {
@@ -26,7 +26,9 @@
     "canvas",
     "html5",
     "abilities",
-    "web-game"
+    "random-abilities",
+    "web-game",
+    "game-development"
   ],
   "engines": {
     "node": ">=18.0.0",

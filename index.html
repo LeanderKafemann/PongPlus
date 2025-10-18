@@ -3,23 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PongPlus - TypeScript Pong Game</title>
+    <title>PongPlus v1.1.0 - TypeScript Pong Game</title>
+    <meta name="description" content="Modern TypeScript Pong game with random abilities, visual effects, and AI opponent">
+    <meta name="version" content="1.1.0">
+    <meta name="author" content="LeanderKafemann">
     <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
     <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
     <div id="app">
-        <h1>🏓 PongPlus</h1>
+        <h1>🏓 PongPlus <span style="font-size: 0.5em; opacity: 0.7;">v1.1.0</span></h1>
+
         <div id="menu" class="menu">
             <button id="startBtn" class="btn">Start Game</button>
             <button id="leaderboardBtn" class="btn">Leaderboard</button>
             <button id="soundToggle" class="btn">🔊 Sound: ON</button>
+            <p style="margin-top: 20px; opacity: 0.8; font-size: 0.9em;">
+                🎲 Each game features 3 random abilities!
+            </p>
         </div>
 
         <div id="gameContainer" class="hidden">
             <div id="score">
                 <span id="playerScore">0</span> : <span id="aiScore">0</span>
             </div>
+            <div id="abilityDisplay" style="margin: 10px 0; text-align: center;"></div>
             <canvas id="gameCanvas" width="800" height="600"></canvas>
             <button id="pauseBtn" class="btn">Pause</button>
         </div>
@@ -51,6 +59,7 @@
 
         <footer style="margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;">
             <p>© 2025 LeanderKafemann. All rights reserved.</p>
+            <p style="font-size: 0.8em; margin-top: 5px;">Version 1.1.0 • Last Updated: 2025-10-18 10:50:59 UTC</p>
         </footer>
     </div>
 

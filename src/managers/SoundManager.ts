@@ -1,6 +1,7 @@
 /**
  * SoundManager - Handles all audio effects
  * @copyright 2025 LeanderKafemann. All rights reserved.
+ * @version 1.1.0
  */
 
 export class SoundManager {
@@ -21,6 +22,11 @@ export class SoundManager {
     this.sounds.shield = this.createTone(660, 0.12);
     this.sounds.speedBoost = this.createTone(880, 0.1);
     this.sounds.countdown = this.createTone(400, 0.08);
+    this.sounds.teleport = this.createTone(1000, 0.1);
+    this.sounds.slowMotion = this.createTone(300, 0.2);
+    this.sounds.multiBall = this.createTone(750, 0.15);
+    this.sounds.giantPaddle = this.createTone(500, 0.12);
+    this.sounds.ghostBall = this.createTone(600, 0.1);
   }
 
   private createTone(frequency: number, duration: number): AudioBuffer {
