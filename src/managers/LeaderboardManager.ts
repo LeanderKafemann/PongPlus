@@ -1,7 +1,7 @@
 /**
  * LeaderboardManager - Handles persistent score storage
  * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.3.2
+ * @version 1.3.3
  */
 
 import type { LeaderboardEntry } from '../game/types';
@@ -11,11 +11,28 @@ export class LeaderboardManager {
 
     /**
      * Get all leaderboard entries from localStorage
+     * Handles migration from old format (number score) to new format (string score)
      * @returns Array of leaderboard entries sorted by player score (descending)
      */
     getEntries(): LeaderboardEntry[] {
         const data = localStorage.getItem(this.storageKey);
-        return data ? JSON.parse(data) : [];
+        if (!data) return [];
+
+        const entries = JSON.parse(data);
+
+        // Migrate old entries to new format
+        return entries.map((entry: any) => {
+            // Old format: { name, score: number, date }
+            // New format: { name, score: "X - Y", date }
+            if (typeof entry.score === 'number') {
+                return {
+                    name: entry.name,
+                    score: `${entry.score} - 0`, // Convert old score to new format
+                    date: entry.date
+                };
+            }
+            return entry;
+        });
     }
 
     /**

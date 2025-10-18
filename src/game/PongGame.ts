@@ -308,9 +308,9 @@ export class PongGame {
     }
 
     /**
-     * Setup click-based easter eggs (title, footer, author, canvas)
-     * @private
-     */
+ * Setup click-based easter eggs (title, footer, author, canvas, score)
+ * @private
+ */
     private setupEasterEggs(): void {
         // Title click - 10 clicks for ultra speed
         const title = document.querySelector('h1');
@@ -368,6 +368,38 @@ export class PongGame {
                 this.canvasClicks = 0;
             }
         });
+
+        // NEW EASTER EGG: Double-click score for instant win
+        const scoreElement = document.getElementById('score');
+        let scoreClickCount = 0;
+        let scoreClickTimer: number | null = null;
+
+        if (scoreElement) {
+            scoreElement.addEventListener('click', () => {
+                if (!this.gameRunning) return;
+
+                scoreClickCount++;
+
+                if (scoreClickTimer) {
+                    clearTimeout(scoreClickTimer);
+                }
+
+                scoreClickTimer = window.setTimeout(() => {
+                    scoreClickCount = 0;
+                }, 500);
+
+                if (scoreClickCount === 2) {
+                    // Double click detected
+                    scoreElement.classList.add('pulse');
+                    alert('🏆 Score Hacker! You win instantly!');
+                    this.playerScore = this.config.winScore;
+                    this.updateScore();
+                    this.checkGameOver();
+                    setTimeout(() => scoreElement.classList.remove('pulse'), 1000);
+                    scoreClickCount = 0;
+                }
+            });
+        }
     }
 
     /**
@@ -703,9 +735,9 @@ export class PongGame {
     }
 
     /**
-     * Update game state
-     * @private
-     */
+    * Update game state
+    * @private
+    */
     private update(): void {
         // Player movement (not affected by reverse controls)
         const upPressed = this.keys['w'] || this.keys['W'] || this.keys['ArrowUp'];
@@ -737,10 +769,11 @@ export class PongGame {
                 }
             }
 
-            // AI ability usage (ENHANCED - can use multi-ball and ghost ball)
+            // AI ability usage (FIXED: smarter teleport usage)
             if (!targetBall.isGhost && Math.abs(targetBall.x - this.ai.x) < 150 && targetBall.getSpeed() > 5) {
                 const random = Math.random();
                 const abilities = this.ai.getAssignedAbilities();
+                const distanceFromBall = Math.abs(aiCenter - targetBall.y);
 
                 // Ghost Ball usage (25% chance when ball is close)
                 if (random < 0.25 && abilities.some(a => a.type === AbilityType.GHOST_BALL)) {
@@ -783,8 +816,8 @@ export class PongGame {
                         });
                     }
                 }
-                // Teleport usage
-                else if (random < 0.85 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
+                // Teleport usage - FIXED: Only when far from ball AND ball is very close to AI paddle
+                else if (random < 0.82 && distanceFromBall > 150 && Math.abs(targetBall.x - this.ai.x) < 80 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
                     this.ai.activateAbility(AbilityType.TELEPORT);
                     this.ai.teleport(this.canvas.height);
                 }

@@ -1,30 +1,25 @@
 /**
  * PongPlus Service Worker
- * @version 1.3.2
+ * @version 1.3.3
  */
 
-const CACHE_NAME = 'pongplus-v1.3.2';
+const CACHE_NAME = 'pongplus-v1.3.3';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/src/main.ts',
-    '/src/style.css',
-    '/src/game/PongGame.ts',
-    '/src/game/Ball.ts',
-    '/src/game/Paddle.ts',
-    '/src/game/AbilitySystem.ts',
-    '/src/game/types.ts',
-    '/src/managers/SoundManager.ts',
-    '/src/managers/MusicManager.ts',
-    '/src/managers/LeaderboardManager.ts',
-    '/public/favicon.svg'
+    '/PongPlus/',
+    '/PongPlus/index.html',
+    '/PongPlus/manifest.json',
+    '/PongPlus/favicon.svg'
 ];
 
 // Install
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => cache.addAll(urlsToCache))
+            .then(cache => {
+                console.log('Opened cache');
+                return cache.addAll(urlsToCache);
+            })
+            .catch(err => console.error('Cache addAll failed:', err))
     );
     self.skipWaiting();
 });
@@ -36,6 +31,7 @@ self.addEventListener('activate', event => {
             return Promise.all(
                 cacheNames.map(cacheName => {
                     if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
@@ -49,6 +45,11 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
-            .then(response => response || fetch(event.request))
+            .then(response => {
+                if (response) {
+                    return response;
+                }
+                return fetch(event.request);
+            })
     );
 });
