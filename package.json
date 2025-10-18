@@ -1,6 +1,6 @@
 {
   "name": "pongplus",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Progressive Web App: Modern TypeScript Pong game with 15+ abilities, music, and easter eggs",
   "author": "LeanderKafemann",
   "license": "MIT",

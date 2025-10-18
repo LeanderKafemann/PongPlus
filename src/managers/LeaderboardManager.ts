@@ -1,7 +1,7 @@
 /**
  * LeaderboardManager - Handles persistent score storage
  * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.3.1
+ * @version 1.3.2
  */
 
 import type { LeaderboardEntry } from '../game/types';
@@ -27,16 +27,19 @@ export class LeaderboardManager {
     addEntry(name: string, playerScore: number, aiScore: number): void {
         const entries = this.getEntries();
 
-        // Create new entry with both scores
+        // Create new entry with combined score string
         entries.push({
             name,
-            playerScore,
-            aiScore,
+            score: `${playerScore} - ${aiScore}`, // Combined score string
             date: new Date().toLocaleDateString()
         });
 
-        // Sort by player score (descending)
-        entries.sort((a, b) => b.playerScore - a.playerScore);
+        // Sort by player score (extract from "X - Y" string)
+        entries.sort((a, b) => {
+            const scoreA = parseInt(a.score.split(' - ')[0]);
+            const scoreB = parseInt(b.score.split(' - ')[0]);
+            return scoreB - scoreA;
+        });
 
         // Keep only top 10
         localStorage.setItem(this.storageKey, JSON.stringify(entries.slice(0, 10)));

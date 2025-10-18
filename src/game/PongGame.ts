@@ -591,8 +591,8 @@ export class PongGame {
         const entries = this.leaderboardManager.getEntries();
         entries.forEach((entry, index) => {
             const row = tbody.insertRow();
-            // Show both player and AI score
-            row.innerHTML = `<td>${index + 1}</td><td>${entry.name}</td><td>${entry.playerScore} - ${entry.aiScore}</td><td>${entry.date}</td>`;
+            // Score is already formatted as "X - Y"
+            row.innerHTML = `<td>${index + 1}</td><td>${entry.name}</td><td>${entry.score}</td><td>${entry.date}</td>`;
         });
 
         if (entries.length === 0) {

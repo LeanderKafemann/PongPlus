@@ -1,9 +1,9 @@
 /**
  * PongPlus Service Worker
- * @version 1.3.1
+ * @version 1.3.2
  */
 
-const CACHE_NAME = 'pongplus-v1.3.1';
+const CACHE_NAME = 'pongplus-v1.3.2';
 const urlsToCache = [
     '/',
     '/index.html',
