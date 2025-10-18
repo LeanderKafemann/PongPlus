@@ -1,2 +1,4 @@
 - change controls hat keinen effekt auf ai
 - schriftzüge wie double score nicht lesbar
+- musik viel schneller
+- magnet buggy (lenkt ball zuweilen hinter eigenen schläger)

@@ -2,31 +2,59 @@
 
 <div align="center">
 
-![PongPlus Banner](https://img.shields.io/badge/PongPlus-v1.2.1-blueviolet?style=for-the-badge)
+![PongPlus Banner](https://img.shields.io/badge/PongPlus-v1.3.0-blueviolet?style=for-the-badge)
 [![Live Demo](https://img.shields.io/badge/Play-Now-success?style=for-the-badge&logo=github)](https://leanderkafemann.github.io/PongPlus/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![PWA](https://img.shields.io/badge/PWA-Installable-blue?style=for-the-badge&logo=pwa)](https://leanderkafemann.github.io/PongPlus/)
 
-**A modern, feature-rich TypeScript implementation of the classic Pong game**
+**A modern, installable Progressive Web App (PWA) - TypeScript Pong game**
 
-*With random abilities, stunning visual effects, and intelligent AI*
+*With 15 random abilities, stunning visual effects, background music, and 13+ hidden easter eggs*
 
-[🎮 Play Now](https://leanderkafemann.github.io/PongPlus/) • [📖 Tutorial](docs/index.html) • [🐛 Report Bug](https://github.com/LeanderKafemann/PongPlus/issues) • [💡 Request Feature](https://github.com/LeanderKafemann/PongPlus/issues)
-
+[🎮 Play Now](https://leanderkafemann.github.io/PongPlus/) • [📱 Install as App](https://leanderkafemann.github.io/PongPlus/) • [📖 Tutorial](docs/index.html) • [🐛 Report Bug](https://github.com/LeanderKafemann/PongPlus/issues) • [💡 Request Feature](https://github.com/LeanderKafemann/PongPlus/issues)
 </div>
 
 ---
 
 ## 🌟 What Makes PongPlus Special?
 
-PongPlus isn't just another Pong clone—it's a complete reimagination with modern game mechanics:
+PongPlus is a **Progressive Web App** - install it on any device and play offline! It's a complete reimagination of classic Pong with modern game mechanics:
 
-- 🎲 **Random Ability System** - Each game features 3 random abilities from a pool of 8
+- 📱 **Progressive Web App** - Install on mobile or desktop, play offline
+- 🎲 **15 Random Abilities** - Each game features 3 random abilities from a pool of 15
 - 🤖 **Smart AI Opponent** - Adaptive difficulty with strategic ability usage
 - 🎨 **Stunning Visual Effects** - Motion trails, glows, and dynamic animations
 - 🔊 **Procedural Audio** - Real-time sound generation via Web Audio API
+- 🎵 **Background Music** - Soothing pentatonic melody during gameplay
 - 📊 **Live Statistics** - Real-time speed tracking and visual feedback
 - 🏆 **Persistent Leaderboard** - Your high scores, saved forever
+- 🎮 **Hidden Easter Eggs** - 13+ secret codes and combinations to discover
+
+### 📱 Progressive Web App (NEW!)
+
+<table>
+<tr>
+<td width="50%">
+
+#### Installable
+- **One-Click Install** on any device
+- **Offline Play** - Works without internet
+- **Native Feel** - Runs like a desktop app
+- **Auto Updates** - Always the latest version
+
+</td>
+<td width="50%">
+
+#### Cross-Platform
+- 🖥️ **Desktop** - Windows, Mac, Linux
+- 📱 **Mobile** - iOS, Android
+- 🌐 **Web** - Any modern browser
+- 💾 **Local Storage** - Saves all progress
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -59,7 +87,7 @@ PongPlus isn't just another Pong clone—it's a complete reimagination with mode
 </tr>
 </table>
 
-### 🎲 Random Ability System (NEW!)
+### 🎲 Random Ability System
 
 Each game randomly selects **3 abilities** from this pool:
 
@@ -77,6 +105,9 @@ Each game randomly selects **3 abilities** from this pool:
 | 🧲 | **Magnet** | M | Ball attracted to paddle 2s | 7.5s |
 | 💎 | **Double Score** | D | Next point counts double | 10s |
 | ❄️ | **Freeze** | X | Freeze opponent for 1.5s | 8s |
+| 🔻 | **Mini Paddle** | N | Opponent paddle -50% for 3s | 7.5s |
+| 🌍 | **Gravity** | Y | Ball curves downward for 2s | 9s |
+| 💥 | **Super Smash** | B | +100% ball speed! | 15s |
 
 **Strategy Changes Every Game!** 🎯
 
@@ -89,26 +120,29 @@ Each game randomly selects **3 abilities** from this pool:
 #### Ball Effects
 - **8-position trail** animation
 - **Speed-based glow** (red at high speed)
-- **Particle effects** on collision
-- **Transparency effects** (Ghost Ball)
+- **Multi-colored** balls (Multi-Ball)
+- **Transparency** effects (Ghost Ball)
+- **Gravity curve** visualization
 
 </td>
 <td width="33%">
 
 #### Paddle Effects
 - **Rounded corners** for modern look
-- **Color coding** by ability
+- **Color coding** by active ability
 - **Shield glow** (blue aura)
-- **Size morphing** (Giant Paddle)
+- **Size morphing** (Giant/Mini Paddle)
+- **Freeze crystals** (ice effect)
 
 </td>
 <td width="33%">
 
 #### UI Elements
 - **Gradient speedometer**
-- **3-bar cooldown indicators**
+- **Multi-bar cooldown indicators**
 - **Countdown overlay**
 - **Ability name display**
+- **Active effects HUD**
 
 </td>
 </tr>
@@ -116,21 +150,7 @@ Each game randomly selects **3 abilities** from this pool:
 
 ### 🔊 Audio System
 
-Powered by **Web Audio API** with procedural generation:
-<li>Paddle Hit → 440 Hz (A4)<br/>
-<li>Wall Bounce → 220 Hz (A3)<br/>
-<li>Score Point → 330 Hz (E4)<br/>
-<li>Smash → 550 Hz (C#5)<br/>
-<li>Shield → 660 Hz (E5)<br/>
-<li>Speed Boost → 880 Hz (A5)<br/>
-<li>Teleport → 1000 Hz (C6)<br/>
-<li>Countdown → 400 Hz (G4)<br/>
-<li>Reverse → 350 Hz (F4)<br/>
-<li>Magnet → 950 Hz (A#5)<br/>
-<li>Double Score → 800 Hz (G#5)<br/>
-<li>Freeze → 250 Hz (B3)<br/><br/>
-
-<li>Music → Pentatonic Scale (C, D, E, G, A)
+Powered by **Web Audio API** with procedural generation.<br/>
 
 Toggle sound on/off anytime during gameplay.
 
@@ -156,7 +176,7 @@ Toggle sound on/off anytime during gameplay.
 <li>E → Secondary Ability (varies)<br/>
 <li>Q → Tertiary Ability (varies)
 
-*Additional keys: E, Q, R, F, T, G, V, C, M, D, X depending on abilities*
+*Additional keys: R, F, T, G, V, C, M, D, X, N, Y, B depending on abilities*
 
 ### 🎛️ Game Controls
 
@@ -330,6 +350,6 @@ Made with ❤️ and TypeScript
 
 © 2025 LeanderKafemann. All rights reserved.
 
-v1.2.0
+v1.3.0
 
 </div> 
