@@ -1,16 +1,19 @@
 /**
  * Shared types and interfaces
  * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.3.2
+ * @version 1.4.0
  */
 
 /**
- * Leaderboard entry with player name, both scores, and date
+ * Leaderboard entry with player name, combined score, date and game mode
+ * score: formatted "player - ai"
+ * mode: "standard" | "arcade"
  */
 export interface LeaderboardEntry {
     name: string;
     score: string;     // Combined score string (e.g., "5 - 3")
     date: string;      // Date of the game
+    mode?: 'standard' | 'arcade';
 }
 
 /**
@@ -19,6 +22,6 @@ export interface LeaderboardEntry {
 export interface GameConfig {
     canvasWidth: number;   // Canvas width in pixels
     canvasHeight: number;  // Canvas height in pixels
-    winScore: number;      // Points needed to win (10)
+    winScore: number;      // Points needed to win
     paddleSpeed: number;   // Base paddle movement speed
 }
