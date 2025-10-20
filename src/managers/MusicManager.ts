@@ -7,7 +7,6 @@
 export class MusicManager {
     private audioContext: AudioContext;
     private oscillator: OscillatorNode | null = null;
-    private gainNode: GainNode | null = null;
     private enabled: boolean = false;
     private currentNote: number = 0;
     private noteTimeoutId: number | null = null;
@@ -75,8 +74,8 @@ export class MusicManager {
         osc.start();
         osc.stop(this.audioContext.currentTime + 0.08);
 
+        // store reference to allow stop() to work
         this.oscillator = osc;
-        this.gainNode = g;
 
         this.currentNote = (this.currentNote + 1) % this.melody.length;
 
