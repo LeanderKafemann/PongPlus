@@ -272,25 +272,27 @@ export class PongGame {
     }
 
     private setupMusicToggle(): void {
-        // floating music button on the page (already appended in previous versions)
+        // Wenn bereits ein Element im DOM existiert, benutzen wir es und speichern die Referenz
         const existing = document.querySelector('.music-indicator') as HTMLElement | null;
         if (existing) {
             this.musicIndicatorEl = existing;
-            existing.addEventListener('click', () => {
+            this.musicIndicatorEl.addEventListener('click', () => {
                 this.musicManager.toggle();
-                existing.textContent = this.musicManager.isPlaying() ? '🎵' : '🔇';
+                if (this.musicIndicatorEl) this.musicIndicatorEl.textContent = this.musicManager.isPlaying() ? '🎵' : '🔇';
             });
             return;
         }
 
+        // Sonst neu anlegen und Referenz speichern
         const musicBtn = document.createElement('div');
         musicBtn.className = 'music-indicator';
-        musicBtn.textContent = '🎵';
+        musicBtn.textContent = this.musicManager.isPlaying() ? '🎵' : '🔇';
         musicBtn.title = 'Toggle Background Music';
         musicBtn.addEventListener('click', () => {
             this.musicManager.toggle();
-            musicBtn.textContent = this.musicManager.isPlaying() ? '🎵' : '🔇';
+            if (this.musicIndicatorEl) this.musicIndicatorEl.textContent = this.musicManager.isPlaying() ? '🎵' : '🔇';
         });
+
         document.body.appendChild(musicBtn);
         this.musicIndicatorEl = musicBtn;
     }
