@@ -86,7 +86,7 @@ export class GameController {
 
         this.aiController = new AIController(this.ai, this.player, () => this.reverseControlsActive);
         this.inputManager = new InputManager(this.onSecret.bind(this), this.onPolaroid.bind(this));
-        this.uiManager = new UIManager(this);
+        this.uiManager = new UIManager();
 
         // wire UI controls
         this.uiManager.onStart(() => this.startGame());

@@ -1,9 +1,8 @@
 ﻿/**
- * UIManager - screen switching, polaroid, small helpers (v1.4.2) - FIXED
+ * UIManager - screen switching, polaroid, small helpers (v1.4.2) - CLEANED
  *
- * - Added onToggleArcade(callback)
- * - Added activateDiscoMode() and toast()
- * - Ensures only one screen visible at a time (hideAll)
+ * - Removed unused controllerRef property / parameter to avoid "declared but its value is never read".
+ * - Keeps all previous UI wiring and helpers.
  */
 
 export class UIManager {
@@ -13,7 +12,7 @@ export class UIManager {
     private backToMenuCb: (() => void) | null = null;
     private toggleArcadeCb: ((v: boolean) => void) | null = null;
 
-    constructor(private controllerRef?: any) {
+    constructor() {
         // wire basic UI buttons
         document.getElementById('startBtn')?.addEventListener('click', () => this.startCb && this.startCb());
         document.getElementById('leaderboardBtn')?.addEventListener('click', () => this.showLeaderboardCb && this.showLeaderboardCb());
