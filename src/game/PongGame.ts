@@ -1063,13 +1063,12 @@ export class PongGame {
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        // default sort by player score descending
+        // default: sort by player score
         const entries = this.leaderboardManager.getEntries('player');
-        for (let i = 0; i < entries.length; i++) {
-            const entry = entries[i];
+        entries.forEach((entry, idx) => {
             const row = tbody.insertRow();
-            row.innerHTML = `<td>${i + 1}</td><td>${entry.name}</td><td>${entry.score}</td><td>${entry.mode ?? 'standard'}</td><td>${entry.date}</td>`;
-        }
+            row.innerHTML = `<td>${idx + 1}</td><td>${entry.name}</td><td>${entry.score}</td><td>${entry.mode ?? 'standard'}</td><td>${entry.date}</td>`;
+        });
 
         if (entries.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No entries yet!</td></tr>';
