@@ -156,13 +156,14 @@ export class PongGame {
        --------------------------- */
 
     private setupPWA(): void {
-        window.addEventListener('beforeinstallprompt', (e) => {
+        window.addEventListener('beforeinstallprompt', (evt: any) => {
             try {
-                e.preventDefault();
-                this.deferredPrompt = e;
+                evt.preventDefault();
+                this.deferredPrompt = evt;
                 const installBtn = document.getElementById('installBtn');
                 if (installBtn) {
                     installBtn.classList.remove('hidden');
+                    // Click-Handler ohne ungenutzte Parameter
                     installBtn.addEventListener('click', async () => {
                         if (this.deferredPrompt) {
                             this.deferredPrompt.prompt();
@@ -173,8 +174,10 @@ export class PongGame {
                     });
                 }
             } catch (err) {
-                // ignore on older browsers
-                console.warn('PWA install prompt setup failed', err);
+                // Fallback: ignore older browsers
+                // Konsolenausgabe nur zu Debug-Zwecken
+                // eslint-disable-next-line no-console
+                console.warn('PWA setup skipped:', err);
             }
         });
     }
@@ -262,10 +265,14 @@ export class PongGame {
                 this.showLeaderboard();
             }
         });
-        if (arcadeToggle) arcadeToggle.addEventListener('change', () => {
-            this.arcadeMode = arcadeToggle.checked;
-            console.log('Arcade mode:', this.arcadeMode);
-        });
+
+        if (arcadeToggle) {
+            arcadeToggle.addEventListener('change', () => {
+                this.arcadeMode = arcadeToggle.checked;
+                // eslint-disable-next-line no-console
+                console.log('Arcade mode set to', this.arcadeMode);
+            });
+        }
     }
 
     private setupMusicToggle(): void {
@@ -382,17 +389,18 @@ export class PongGame {
     }
 
     private setupEasterEggs(): void {
-        // Title click
+        // Title click secrets
         const title = document.querySelector('h1');
         if (title) {
-            title.addEventListener('click', (e) => {
+            title.addEventListener('click', () => {
                 this.secretClicks++;
                 title.classList.add('spin');
                 setTimeout(() => title.classList.remove('spin'), 900);
                 if (this.secretClicks === 10) {
                     alert('🎮 Ultra Speed unlocked! Paddle speed doubled for this game.');
-                    this.config.paddleSpeed = Math.min(20, this.config.paddleSpeed * 2);
-                    setTimeout(() => this.config.paddleSpeed = Math.max(6, Math.floor(this.config.paddleSpeed / 2)), 12000);
+                    const oldSpeed = this.config.paddleSpeed;
+                    this.config.paddleSpeed = Math.min(20, oldSpeed * 2);
+                    setTimeout(() => { this.config.paddleSpeed = oldSpeed; }, 12000);
                     this.secretClicks = 0;
                 } else if (this.secretClicks === 5) {
                     this.soundManager.play('paddleHit');
@@ -400,19 +408,19 @@ export class PongGame {
             });
         }
 
-        // Footer click
+        // Footer hints
         const footer = document.getElementById('gameFooter');
         if (footer) {
             footer.addEventListener('click', () => {
                 this.footerClicks++;
                 if (this.footerClicks === 7) {
-                    alert('👻 Hints: Try typing "disco", "matrix", "god" or click the title 10x');
+                    alert('👻 Hints: Try typing "disco", "matrix", "god" or click the title 10×');
                     this.footerClicks = 0;
                 }
             });
         }
 
-        // Author click
+        // Author click hint
         const author = document.querySelector('.author-name');
         if (author) {
             author.addEventListener('click', (ev) => {
@@ -425,7 +433,7 @@ export class PongGame {
             });
         }
 
-        // Canvas multi-click
+        // Canvas multi-click confuses AI
         this.canvas.addEventListener('click', () => {
             if (!this.gameRunning) return;
             this.canvasClicks++;
@@ -435,16 +443,16 @@ export class PongGame {
             }
         });
 
-        // Double-click score easter egg
+        // Double-click score => instant win (easter egg)
         const scoreEl = document.getElementById('score');
         if (scoreEl) {
             let clicks = 0;
-            let t: number | null = null;
+            let timer: number | null = null;
             scoreEl.addEventListener('click', () => {
                 if (!this.gameRunning) return;
                 clicks++;
-                if (t) clearTimeout(t);
-                t = window.setTimeout(() => { clicks = 0; }, 500);
+                if (timer) clearTimeout(timer);
+                timer = window.setTimeout(() => { clicks = 0; }, 500);
                 if (clicks === 2) {
                     scoreEl.classList.add('pulse');
                     alert('🏆 Score Hacker! You instantly win!');
@@ -453,7 +461,7 @@ export class PongGame {
                     this.checkGameOver();
                     setTimeout(() => scoreEl.classList.remove('pulse'), 1000);
                     clicks = 0;
-                    if (t) { clearTimeout(t); t = null; }
+                    if (timer) { clearTimeout(timer); timer = null; }
                 }
             });
         }
@@ -657,14 +665,14 @@ export class PongGame {
        --------------------------- */
 
     private update(): void {
-        // player input movement
+        // Player input
         const up = this.keys['w'] || this.keys['W'] || this.keys['ArrowUp'];
         const down = this.keys['s'] || this.keys['S'] || this.keys['ArrowDown'];
         if (up) this.player.move(-1, this.canvas.height);
         if (down) this.player.move(1, this.canvas.height);
         this.player.update();
 
-        // AI update + heuristics
+        // AI update
         if (!this.freezeActive) {
             this.ai.update();
 
@@ -672,7 +680,7 @@ export class PongGame {
             const targetBall = this.balls[0];
             const aiDirection = this.reverseControlsActive ? -1 : 1;
 
-            // track visible ball, otherwise random jitter
+            // Tracking when ball is visible; random jitter when ghost
             if (!targetBall.isGhost) {
                 if (aiCenter < targetBall.y - 35) this.ai.move(1 * aiDirection, this.canvas.height);
                 else if (aiCenter > targetBall.y + 35) this.ai.move(-1 * aiDirection, this.canvas.height);
@@ -680,13 +688,13 @@ export class PongGame {
                 if (Math.random() < 0.02) this.ai.move(Math.random() > 0.5 ? 1 : -1, this.canvas.height);
             }
 
-            // AI ability usage with heuristics to avoid spam and be sensible
+            // AI ability usage: selective and conditional to reduce spam
             if (!targetBall.isGhost && Math.abs(targetBall.x - this.ai.x) < 160 && targetBall.getSpeed() > 5) {
                 const rand = Math.random();
                 const abilities = this.ai.getAssignedAbilities();
                 const distanceFromBall = Math.abs(aiCenter - targetBall.y);
 
-                // Ghost Ball: occasionally to confuse player when ball close
+                // Ghost Ball: use sometimes when ball close
                 if (rand < 0.18 && abilities.some(a => a.type === AbilityType.GHOST_BALL)) {
                     if (this.ai.activateAbility(AbilityType.GHOST_BALL)) {
                         this.balls.forEach(b => b.setGhost(true));
@@ -694,7 +702,7 @@ export class PongGame {
                         setTimeout(() => this.balls.forEach(b => b.setGhost(false)), 1500);
                     }
                 }
-                // Multi-Ball: when fast and AI wants aggressive play (and not trailing too much)
+                // Multi-Ball: only on fast ball
                 else if (rand >= 0.18 && rand < 0.36 && targetBall.getSpeed() > 7 && abilities.some(a => a.type === AbilityType.MULTI_BALL)) {
                     if (this.ai.activateAbility(AbilityType.MULTI_BALL) && !this.multiBallActive && this.balls.length === 1) {
                         this.multiBallActive = true;
@@ -704,7 +712,7 @@ export class PongGame {
                         setTimeout(() => { this.balls = this.balls.slice(0, 1); this.multiBallActive = false; }, 3000);
                     }
                 }
-                // Double score: opportunistic when AI expects to convert
+                // Double-score: opportunistic when near AI paddle
                 else if (rand >= 0.36 && rand < 0.52 && abilities.some(a => a.type === AbilityType.DOUBLE_SCORE)) {
                     if (Math.abs(targetBall.x - this.ai.x) < 100 && targetBall.x > this.canvas.width / 2) {
                         if (this.ai.activateAbility(AbilityType.DOUBLE_SCORE)) {
@@ -713,26 +721,20 @@ export class PongGame {
                         }
                     }
                 }
-                // Shield
+                // Shield / Smash / Teleport / Mini-Paddle ... conditional as before
                 else if (rand >= 0.52 && rand < 0.68 && abilities.some(a => a.type === AbilityType.SHIELD)) {
                     this.ai.activateAbility(AbilityType.SHIELD);
-                }
-                // Smash aggression
-                else if (rand >= 0.68 && rand < 0.80 && abilities.some(a => a.type === AbilityType.SMASH)) {
+                } else if (rand >= 0.68 && rand < 0.80 && abilities.some(a => a.type === AbilityType.SMASH)) {
                     if (this.ai.activateAbility(AbilityType.SMASH)) {
                         this.balls.forEach(b => { b.speedX *= 1.5; b.speedY *= 1.2; });
                         this.soundManager.play('smash');
                     }
-                }
-                // Teleport: only when AI is far vertically and ball is very close to paddle horizontally
-                else if (rand >= 0.80 && rand < 0.88 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
+                } else if (rand >= 0.80 && rand < 0.88 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
                     if (distanceFromBall > 120 && Math.abs(targetBall.x - this.ai.x) < 80) {
                         this.ai.activateAbility(AbilityType.TELEPORT);
                         this.ai.teleport(this.canvas.height);
                     }
-                }
-                // Mini paddle: reduced frequency to avoid spam
-                else if (rand >= 0.88 && rand < 0.95 && abilities.some(a => a.type === AbilityType.MINI_PADDLE)) {
+                } else if (rand >= 0.88 && rand < 0.95 && abilities.some(a => a.type === AbilityType.MINI_PADDLE)) {
                     if (Math.random() < 0.33) {
                         this.ai.activateAbility(AbilityType.MINI_PADDLE);
                         this.player.applyMiniPaddle();
@@ -741,7 +743,7 @@ export class PongGame {
             }
         }
 
-        // Magnet effect: only affects balls in front of player's paddle on player's side
+        // Magnet: only affect balls in front of player's paddle (on player's side)
         if (this.magnetActive) {
             const paddleCenter = this.player.y + (this.player.height / 2);
             this.balls.forEach(ball => {
@@ -756,11 +758,11 @@ export class PongGame {
             });
         }
 
-        // Update each ball (physics, collisions, scoring)
+        // Update balls: physics / collisions / scoring
         this.balls = this.balls.filter(ball => {
             ball.update();
 
-            // wall bounce
+            // wall collision
             if (ball.y - ball.radius <= 0 || ball.y + ball.radius >= this.canvas.height) {
                 ball.speedY *= -1;
                 ball.y = Math.max(ball.radius, Math.min(this.canvas.height - ball.radius, ball.y));
@@ -797,7 +799,6 @@ export class PongGame {
                     }
                 }
 
-                // reposition to avoid stuck
                 if (playerCollision) ball.x = this.player.x + this.player.width + ball.radius;
                 else ball.x = this.ai.x - ball.radius;
             }
@@ -824,7 +825,7 @@ export class PongGame {
             return true;
         });
 
-        // Reset if no balls left
+        // if all balls gone, reset main ball
         if (this.balls.length === 0 && this.gameRunning) {
             this.ball.reset(this.canvas.width, this.canvas.height);
             this.balls = [this.ball];
@@ -929,14 +930,14 @@ export class PongGame {
 
         if (effects.length === 0) return;
 
-        this.ctx.strokeStyle = 'rgba(0,0,0,0.9)';
-        this.ctx.lineWidth = 4;
-        this.ctx.fillStyle = 'rgba(255,255,255,1)';
         this.ctx.font = 'bold 18px Arial';
         this.ctx.textAlign = 'center';
+        this.ctx.lineWidth = 4;
+        this.ctx.strokeStyle = 'rgba(0,0,0,0.9)';
+        this.ctx.fillStyle = 'rgba(255,255,255,1)';
 
-        effects.forEach((effect, idx) => {
-            const y = 80 + idx * 28; // moved down for readability
+        effects.forEach((effect, i) => {
+            const y = 80 + i * 28; // moved slightly down to avoid overlap with top HUD
             this.ctx.strokeText(effect, this.canvas.width / 2, y);
             this.ctx.fillText(effect, this.canvas.width / 2, y);
         });
