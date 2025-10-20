@@ -1,62 +1,53 @@
 /**
- * SoundManager - Handles all audio effects
- * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.2.0
+ * SoundManager - lightweight WebAudio-based SFX manager
+ * v1.4.0
  */
 
 export class SoundManager {
-  private sounds: { [key: string]: AudioBuffer } = {};
-  private audioContext: AudioContext;
-  private enabled: boolean = true;
+    private ctx: AudioContext;
+    private enabled: boolean = true;
 
-  constructor() {
-    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    this.createSounds();
-  }
-
-  private createSounds() {
-    this.sounds.paddleHit = this.createTone(440, 0.1);
-    this.sounds.wallHit = this.createTone(220, 0.1);
-    this.sounds.score = this.createTone(330, 0.3);
-    this.sounds.smash = this.createTone(550, 0.15);
-    this.sounds.shield = this.createTone(660, 0.12);
-    this.sounds.speedBoost = this.createTone(880, 0.1);
-    this.sounds.countdown = this.createTone(400, 0.08);
-    this.sounds.teleport = this.createTone(1000, 0.1);
-    this.sounds.slowMotion = this.createTone(300, 0.2);
-    this.sounds.multiBall = this.createTone(750, 0.15);
-    this.sounds.giantPaddle = this.createTone(500, 0.12);
-    this.sounds.ghostBall = this.createTone(600, 0.1);
-    this.sounds.reverseControls = this.createTone(350, 0.15);
-    this.sounds.magnet = this.createTone(950, 0.12);
-    this.sounds.doubleScore = this.createTone(800, 0.2);
-    this.sounds.freeze = this.createTone(250, 0.15);
-  }
-
-  private createTone(frequency: number, duration: number): AudioBuffer {
-    const sampleRate = this.audioContext.sampleRate;
-    const numSamples = sampleRate * duration;
-    const buffer = this.audioContext.createBuffer(1, numSamples, sampleRate);
-    const data = buffer.getChannelData(0);
-
-    for (let i = 0; i < numSamples; i++) {
-      data[i] = Math.sin(2 * Math.PI * frequency * i / sampleRate) * Math.exp(-3 * i / numSamples);
+    constructor() {
+        this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
 
-    return buffer;
-  }
+    toggle(): boolean {
+        this.enabled = !this.enabled;
+        return this.enabled;
+    }
 
-  play(soundName: string) {
-    if (!this.enabled || !this.sounds[soundName]) return;
-    
-    const source = this.audioContext.createBufferSource();
-    source.buffer = this.sounds[soundName];
-    source.connect(this.audioContext.destination);
-    source.start(0);
-  }
+    play(name: string): void {
+        if (!this.enabled) return;
 
-  toggle(): boolean {
-    this.enabled = !this.enabled;
-    return this.enabled;
-  }
+        const t = this.ctx.currentTime;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = 'sine';
+
+        // Map name to freq/duration
+        let freq = 440;
+        let dur = 0.08;
+        switch (name) {
+            case 'paddleHit': freq = 440; dur = 0.06; break;
+            case 'wallHit': freq = 220; dur = 0.06; break;
+            case 'score': freq = 330; dur = 0.12; break;
+            case 'smash': freq = 600; dur = 0.12; break;
+            case 'shield': freq = 660; dur = 0.08; break;
+            case 'speedBoost': freq = 880; dur = 0.08; break;
+            case 'teleport': freq = 1000; dur = 0.1; break;
+            case 'ghostBall': freq = 300; dur = 0.1; break;
+            case 'multiBall': freq = 520; dur = 0.12; break;
+            case 'countdown': freq = 400; dur = 0.08; break;
+            default: freq = 440; dur = 0.06; break;
+        }
+
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.06, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+        o.connect(g);
+        g.connect(this.ctx.destination);
+        o.start(t);
+        o.stop(t + dur + 0.02);
+    }
 }

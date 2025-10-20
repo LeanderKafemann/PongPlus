@@ -27,15 +27,7 @@
     "canvas",
     "html5",
     "abilities",
-    "pwa",
-    "progressive-web-app",
-    "installable",
-    "offline",
-    "web-game",
-    "game-development",
-    "music",
-    "easter-eggs",
-    "glassmorphism"
+    "pwa"
   ],
   "engines": {
     "node": ">=18.0.0",
