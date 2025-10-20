@@ -2,52 +2,78 @@
 
 All notable changes to PongPlus will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.4.0] - 2025-10-20
+
+### 🛠 Major Fixes & Features
+
+#### Added
+- 🕹️ Arcade Mode — new game mode (toggle in menu). In Arcade Mode the game continues until the AI reaches 10 points. Mode is saved with leaderboard entries.
+- 🏆 Leaderboard entries now include mode (standard | arcade).
+- 🎁 New Easter Egg — double-click the score display during gameplay to instantly win.
+
+#### Fixed / Improved
+- 🤖 AI heuristics: smarter teleport usage, reduced multi-ball and mini-paddle spam, added conditional use of Double-Score and Ghost Ball under sensible conditions.
+- 🧲 Magnet bug: magnet now only pulls balls that are in front of (and on the player's side of) the paddle; respects mini/giant paddle states.
+- 👻 Ghost Ball: actually invisible now (no rendering), but still collidable.
+- 📊 Leaderboard migration: robust migration logic to convert old formats (numeric score or playerScore/aiScore) into new "X - Y" string format; sort by player or AI supported.
+- 📝 Increased inline JSDoc comments for main managers and game loop functions for better maintainability.
+- 🧭 Service Worker paths adjusted for GitHub Pages hosting (repo root prefix).
+- 🎯 HUD: power-up / effect HUD position adjusted to improve readability; effect text has outline for contrast.
+
+#### Technical
+- 🔧 Music tempo configurable in MusicManager (default faster tempo).
+- 🔁 Save mode in leaderboard entries for better analytics.
+- 🧩 Refactoring and minor API changes:
+  - LeaderboardManager.addEntry(name, playerScore, aiScore, mode)
+  - LeaderboardManager.getEntries(sortBy?: 'player' | 'ai')
+
 ---
 
 ## [1.3.3] - 2025-01-18
 
-### 🐛 Critical Fixes & Easter Egg
-
-#### Fixed
-- 🐛 **Leaderboard Error** - Fixed `score.split is not a function` error with migration system
-- 🐛 **Old Score Migration** - Automatically converts old numeric scores to new string format
-- 🐛 **Service Worker Path** - Fixed SW registration path for GitHub Pages deployment
-- 🤖 **AI Teleport Spam** - AI now only uses teleport when far from ball AND ball is very close
-
-#### Added
-- 🎮 **New Easter Egg** - Double-click score display during game for instant win!
-
-#### Technical
-- 🔄 **Score Migration** - `getEntries()` now converts old `{ score: number }` to new `{ score: "X - Y" }` format
-- 📁 **SW Paths** - Service Worker now uses `/PongPlus/` prefix for GitHub Pages
-- 🎯 **AI Logic** - Teleport only when `distanceFromBall > 150` AND `ball distance < 80`
-
----
+- Fixed leaderboard split-string migration and SW path errors
+- added AI teleport spam fix
+- added easter egg
 
 ## [1.3.2] - 2025-01-18
-- Fixed TypeScript build errors with LeaderboardEntry interface
+
+- TypeScript build fix: LeaderboardEntry schema corrected (score: string), sorting logic added.
 
 ## [1.3.1] - 2025-01-18
-- Fixed reverse controls, magnet bug, active effects visibility
-- AI uses Ghost Ball & Multi-Ball, faster music, win score to 10
+
+- Reverse controls affects AI only.
+- Active effects text gets outline for readability.
+- Magnet bug fixed.
+- AI now can use Ghost Ball and Multi-Ball where appropriate.
+- Music tempo increased.
 
 ## [1.3.0] - 2025-01-18
-- PWA support, 15 abilities, 5 new easter eggs
+
+- PWA support, 15 abilities, many easter eggs, music & UI enhancements.
 
 ## [1.2.1] - 2025-01-18
-- Fixed arrow scrolling, magnet, multi-ball
+
+- Various bug fixes and polish.
 
 ## [1.2.0] - 2025-01-18
-- Background music, 12 abilities, glassmorphism UI
+
+- Background music & UI upgrades.
 
 ## [1.1.0] - 2025-01-18
-- Random ability system (8 abilities)
+
+- Random ability system added.
 
 ## [1.0.0] - 2025-01-18
-- Initial release
+
+- Initial release.
 
 ---
 
 **Maintained by:** [@LeanderKafemann](https://github.com/LeanderKafemann)
 
-**Last Updated:** 2025-01-18
+**Last Updated:** 2025-10-20

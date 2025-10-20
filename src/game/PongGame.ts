@@ -1,7 +1,15 @@
 ﻿/**
- * PongGame - Main game logic with PWA support
- * @copyright 2025 LeanderKafemann. All rights reserved.
- * @version 1.3.1
+ * PongGame - Main game logic with AI heuristics improvements and Arcade mode
+ * - v1.4.0
+ *
+ * Notes:
+ * - Arcade mode toggle available in menu (checkbox #arcadeToggle)
+ * - Leaderboard entries saved with mode ('standard' | 'arcade')
+ * - AI heuristics improved: teleport limited, multi-ball/ghost used conditionally, mini-paddle spam reduced
+ * - Magnet only affects balls in front of player's paddle
+ * - Ghost ball invisibility handled in Ball.draw (no render)
+ *
+ * Keep this file reasonably documented; additional comments added.
  */
 
 import { Ball } from './Ball';
@@ -13,95 +21,77 @@ import { AbilitySystem, AbilityType, type Ability } from './AbilitySystem';
 import type { GameConfig } from './types';
 
 export class PongGame {
-    // Canvas and rendering
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
 
-    // Game entities
     private player: Paddle;
     private ai: Paddle;
     private ball: Ball;
     private balls: Ball[] = [];
 
-    // Score tracking
-    private playerScore: number = 0;
-    private aiScore: number = 0;
+    private playerScore = 0;
+    private aiScore = 0;
 
-    // Input handling
     private keys: { [key: string]: boolean } = {};
-
-    // Game state
     private animationId: number | null = null;
-    private paused: boolean = false;
-    private gameRunning: boolean = false;
+    private paused = false;
+    private gameRunning = false;
 
-    // Managers
     private soundManager: SoundManager;
     private leaderboardManager: LeaderboardManager;
     private musicManager: MusicManager;
     private abilitySystem: AbilitySystem;
 
-    // Configuration
     private config: GameConfig;
 
-    // Countdown
-    private countdown: number = 0;
-    private countdownActive: boolean = false;
+    private countdown = 0;
+    private countdownActive = false;
 
-    // Active effects (player-controlled)
-    private slowMotionActive: boolean = false;
-    private reverseControlsActive: boolean = false; // Only affects AI now
-    private magnetActive: boolean = false;
-    private doubleScoreActive: boolean = false;
-    private freezeActive: boolean = false;
-    private multiBallActive: boolean = false;
-    private gravityActive: boolean = false;
+    // Effects & flags
+    private slowMotionActive = false;
+    private reverseControlsActive = false; // affects AI movement, not player
+    private magnetActive = false;
+    private doubleScoreActive = false;
+    private freezeActive = false;
+    private multiBallActive = false;
+    private gravityActive = false;
 
-    // Easter Eggs
-    private konamiCode: string[] = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-    private konamiProgress: number = 0;
-    private secretClicks: number = 0;
-    private footerClicks: number = 0;
-    private authorClicks: number = 0;
-    private canvasClicks: number = 0;
-    private pauseCount: number = 0;
-    private discoMode: boolean = false;
-    private matrixMode: boolean = false;
-    private sequenceKeys: string = '';
-    private lastKeyTime: number = 0;
+    // Easter eggs / UI
+    private secretClicks = 0;
+    private footerClicks = 0;
+    private authorClicks = 0;
+    private canvasClicks = 0;
+    private pauseCount = 0;
 
-    // PWA Install
+    // PWA
     private deferredPrompt: any = null;
 
+    // Arcade mode
+    private arcadeMode: boolean = false;
+
     constructor() {
-        // Initialize canvas
         this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
         this.ctx = this.canvas.getContext('2d')!;
 
-        // Initialize managers
         this.soundManager = new SoundManager();
         this.leaderboardManager = new LeaderboardManager();
-        this.musicManager = new MusicManager();
+        this.musicManager = new MusicManager(120); // tempo in ms per note
         this.abilitySystem = new AbilitySystem();
 
-        // Game configuration - CHANGED: Win score to 10
         this.config = {
             canvasWidth: this.canvas.width,
             canvasHeight: this.canvas.height,
-            winScore: 10, // Changed from 5 to 10
+            winScore: 10, // default win score
             paddleSpeed: 6
         };
 
-        // Create paddles
         const paddleOffset = 20;
         this.player = new Paddle(paddleOffset, this.canvas.height / 2 - 50);
         this.ai = new Paddle(this.canvas.width - paddleOffset - 10, this.canvas.height / 2 - 50);
 
-        // Create ball
         this.ball = new Ball(this.canvas.width / 2, this.canvas.height / 2);
         this.balls.push(this.ball);
 
-        // Setup everything
         this.setupControls();
         this.setupUI();
         this.setupEasterEggs();
@@ -110,14 +100,12 @@ export class PongGame {
     }
 
     /**
-     * Setup PWA install prompt
-     * @private
+     * PWA install prompt handling
      */
     private setupPWA(): void {
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             this.deferredPrompt = e;
-
             const installBtn = document.getElementById('installBtn');
             if (installBtn) {
                 installBtn.classList.remove('hidden');
@@ -125,7 +113,7 @@ export class PongGame {
                     if (this.deferredPrompt) {
                         this.deferredPrompt.prompt();
                         const { outcome } = await this.deferredPrompt.userChoice;
-                        console.log(`User response: ${outcome}`);
+                        console.log('Install outcome:', outcome);
                         this.deferredPrompt = null;
                         installBtn.classList.add('hidden');
                     }
@@ -135,29 +123,26 @@ export class PongGame {
     }
 
     /**
-     * Setup keyboard and input controls
-     * @private
+     * Keyboard input setup
      */
     private setupControls(): void {
         window.addEventListener('keydown', (e) => {
-            // Prevent arrow keys from scrolling when game is active
             if (this.gameRunning && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
                 e.preventDefault();
             }
-
             this.keys[e.key] = true;
+
+            // Secrets processing
             this.checkKonamiCode(e.key);
             this.checkSecretSequence(e.key);
 
             if (!this.gameRunning || this.paused || this.countdownActive) return;
 
-            // Check for ability activation
             const abilities = this.player.getAssignedAbilities();
-
-            abilities.forEach(ability => {
-                if (this.isAbilityKey(e.key, ability.key)) {
+            abilities.forEach(a => {
+                if (this.isAbilityKey(e.key, a.key)) {
                     e.preventDefault();
-                    this.activatePlayerAbility(ability.type);
+                    this.activatePlayerAbility(a.type);
                 }
             });
         });
@@ -167,244 +152,57 @@ export class PongGame {
         });
     }
 
-// -----------------------
-
-    // ... Fortsetzung von Teil 1
-
     /**
-     * Check if pressed key matches konami code sequence
-     * @private
+     * Setup menu UI / buttons and arcade toggle wiring
      */
-    private checkKonamiCode(key: string): void {
-        if (key === this.konamiCode[this.konamiProgress]) {
-            this.konamiProgress++;
-            if (this.konamiProgress === this.konamiCode.length) {
-                this.activateKonamiCode();
-                this.konamiProgress = 0;
-            }
-        } else {
-            this.konamiProgress = 0;
-        }
-    }
+    private setupUI(): void {
+        const startBtn = document.getElementById('startBtn')!;
+        const leaderboardBtn = document.getElementById('leaderboardBtn')!;
+        const soundToggle = document.getElementById('soundToggle')!;
+        const pauseBtn = document.getElementById('pauseBtn')!;
+        const backBtn = document.getElementById('backBtn')!;
+        const menuBtn = document.getElementById('menuBtn')!;
+        const saveScoreBtn = document.getElementById('saveScoreBtn')!;
+        const clearBtn = document.getElementById('clearBtn')!;
+        const arcadeToggle = document.getElementById('arcadeToggle') as HTMLInputElement | null;
 
-    /**
-     * Check for secret key sequences (pong, disco, speed, matrix, god)
-     * @private
-     */
-    private checkSecretSequence(key: string): void {
-        const now = Date.now();
-
-        // Reset if too much time passed (2 seconds)
-        if (now - this.lastKeyTime > 2000) {
-            this.sequenceKeys = '';
-        }
-
-        this.lastKeyTime = now;
-        this.sequenceKeys += key;
-
-        // Keep only last 10 keys
-        if (this.sequenceKeys.length > 10) {
-            this.sequenceKeys = this.sequenceKeys.slice(-10);
-        }
-
-        // Check for secret sequences
-        if (this.sequenceKeys.toLowerCase().includes('pong')) {
-            this.activatePongSecret();
-            this.sequenceKeys = '';
-        } else if (this.sequenceKeys.toLowerCase().includes('disco')) {
-            this.activateDiscoMode();
-            this.sequenceKeys = '';
-        } else if (this.sequenceKeys.toLowerCase().includes('speed')) {
-            this.activateSpeedSecret();
-            this.sequenceKeys = '';
-        } else if (this.sequenceKeys.toLowerCase().includes('matrix')) {
-            this.activateMatrixMode();
-            this.sequenceKeys = '';
-        } else if (this.sequenceKeys.toLowerCase().includes('god')) {
-            this.activateGodMode();
-            this.sequenceKeys = '';
-        }
-    }
-
-    /** Activate Konami Code easter egg */
-    private activateKonamiCode(): void {
-        document.body.classList.add('konami-active');
-        alert('🎉 Konami Code! Rainbow Mode for 10s!');
-        this.soundManager.play('score');
-
-        setTimeout(() => {
-            document.body.classList.remove('konami-active');
-        }, 10000);
-    }
-
-    /** Activate Pong secret - bigger ball */
-    private activatePongSecret(): void {
-        const menu = document.querySelector('.menu');
-        if (menu) {
-            menu.classList.add('bounce');
-            alert('🏓 Classic Pong! Ball size +50%!');
-            this.balls.forEach(ball => ball.radius = 12);
-            setTimeout(() => menu.classList.remove('bounce'), 600);
-        }
-    }
-
-    /** Activate Disco Mode - color shifting background */
-    private activateDiscoMode(): void {
-        this.discoMode = !this.discoMode;
-
-        if (this.discoMode) {
-            document.body.classList.add('disco-mode');
-            const discoBall = document.createElement('div');
-            discoBall.className = 'disco-ball';
-            discoBall.id = 'discoBall';
-            document.body.appendChild(discoBall);
-            alert('🪩 Disco Mode! Party for 10s!');
-
-            setTimeout(() => {
-                this.discoMode = false;
-                document.body.classList.remove('disco-mode');
-                const ball = document.getElementById('discoBall');
-                if (ball) ball.remove();
-            }, 10000);
-        }
-    }
-
-    /** Activate Speed Secret - double max ball speed */
-    private activateSpeedSecret(): void {
-        alert('⚡ Speed Hack! Max speed x2!');
-        this.balls.forEach(ball => {
-            (ball as any).maxSpeed = 24;
+        startBtn.addEventListener('click', () => this.startGame());
+        leaderboardBtn.addEventListener('click', () => this.showLeaderboard());
+        soundToggle.addEventListener('click', () => {
+            const enabled = this.soundManager.toggle();
+            soundToggle.textContent = `🔊 Sound: ${enabled ? 'ON' : 'OFF'}`;
         });
-        this.soundManager.play('speedBoost');
-    }
 
-    /** Activate Matrix Mode - green theme */
-    private activateMatrixMode(): void {
-        this.matrixMode = !this.matrixMode;
-        if (this.matrixMode) {
-            document.body.style.background = 'linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%)';
-            document.body.style.color = '#00ff00';
-            alert('💚 Matrix Mode! Follow the white rabbit...');
-
-            setTimeout(() => {
-                this.matrixMode = false;
-                document.body.style.background = '';
-                document.body.style.color = '';
-            }, 15000);
-        }
-    }
-
-    /** Activate God Mode - temporary super powers */
-    private activateGodMode(): void {
-        alert('👑 GOD MODE! Infinite abilities for 10s!');
-        this.config.paddleSpeed = 20;
-        this.player.height = 200;
-        this.soundManager.play('smash');
-
-        setTimeout(() => {
-            this.config.paddleSpeed = 6;
-            this.player.height = 100;
-        }, 10000);
-    }
-
-    /**
- * Setup click-based easter eggs (title, footer, author, canvas, score)
- * @private
- */
-    private setupEasterEggs(): void {
-        // Title click - 10 clicks for ultra speed
-        const title = document.querySelector('h1');
-        if (title) {
-            title.addEventListener('click', () => {
-                this.secretClicks++;
-                title.classList.add('spin');
-                setTimeout(() => title.classList.remove('spin'), 1000);
-
-                if (this.secretClicks === 10) {
-                    title.classList.add('shake');
-                    alert('🎮 Ultra Speed! Paddle x2!');
-                    this.config.paddleSpeed = 12;
-                    setTimeout(() => title.classList.remove('shake'), 500);
-                    this.secretClicks = 0;
-                } else if (this.secretClicks === 5) {
-                    this.soundManager.play('paddleHit');
-                }
-            });
-        }
-
-        // Footer click - 7 clicks for hint
-        const footer = document.getElementById('gameFooter');
-        if (footer) {
-            footer.addEventListener('click', () => {
-                this.footerClicks++;
-                if (this.footerClicks === 7) {
-                    alert('👻 Secrets: "disco", "matrix", "god"');
-                    this.footerClicks = 0;
-                }
-            });
-        }
-
-        // Author name click - 3 clicks for hint
-        const authorName = document.querySelector('.author-name');
-        if (authorName) {
-            authorName.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.authorClicks++;
-
-                if (this.authorClicks === 3) {
-                    alert('👨‍💻 Type: "speed", "pong", "matrix", "god"');
-                    this.authorClicks = 0;
-                }
-            });
-        }
-
-        // Canvas click - 20 clicks for AI confusion
-        this.canvas.addEventListener('click', () => {
-            if (!this.gameRunning) return;
-            this.canvasClicks++;
-
-            if (this.canvasClicks === 20) {
-                alert('🎯 Ball Tracker! AI gets confused!');
-                this.canvasClicks = 0;
+        pauseBtn.addEventListener('click', () => {
+            this.togglePause();
+            this.pauseCount++;
+            if (this.pauseCount === 15) {
+                alert('⏸️ Pause Master! All cooldowns -50% for next game!');
+                this.pauseCount = 0;
             }
         });
 
-        // NEW EASTER EGG: Double-click score for instant win
-        const scoreElement = document.getElementById('score');
-        let scoreClickCount = 0;
-        let scoreClickTimer: number | null = null;
+        backBtn.addEventListener('click', () => this.showMenu());
+        menuBtn.addEventListener('click', () => this.showMenu());
+        saveScoreBtn.addEventListener('click', () => this.saveScore());
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Clear all leaderboard entries?')) {
+                this.leaderboardManager.clear();
+                this.showLeaderboard();
+            }
+        });
 
-        if (scoreElement) {
-            scoreElement.addEventListener('click', () => {
-                if (!this.gameRunning) return;
-
-                scoreClickCount++;
-
-                if (scoreClickTimer) {
-                    clearTimeout(scoreClickTimer);
-                }
-
-                scoreClickTimer = window.setTimeout(() => {
-                    scoreClickCount = 0;
-                }, 500);
-
-                if (scoreClickCount === 2) {
-                    // Double click detected
-                    scoreElement.classList.add('pulse');
-                    alert('🏆 Score Hacker! You win instantly!');
-                    this.playerScore = this.config.winScore;
-                    this.updateScore();
-                    this.checkGameOver();
-                    setTimeout(() => scoreElement.classList.remove('pulse'), 1000);
-                    scoreClickCount = 0;
-                }
+        if (arcadeToggle) {
+            arcadeToggle.addEventListener('change', () => {
+                this.arcadeMode = arcadeToggle.checked;
+                // If switching modes mid-menu, nothing else required; startGame will respect it
+                console.log('Arcade mode:', this.arcadeMode);
             });
         }
     }
 
     /**
-     * Setup music toggle button (floating button)
-     * @private
+     * Toggle music UI element (floating button)
      */
     private setupMusicToggle(): void {
         const musicBtn = document.createElement('div');
@@ -419,8 +217,89 @@ export class PongGame {
     }
 
     /**
-     * Check if pressed key matches ability key
-     * @private
+     * Easter eggs and click secrets
+     */
+    private setupEasterEggs(): void {
+        // Title clicks
+        const title = document.querySelector('h1');
+        if (title) {
+            title.addEventListener('click', () => {
+                this.secretClicks++;
+                title.classList.add('spin');
+                setTimeout(() => title.classList.remove('spin'), 1000);
+                if (this.secretClicks === 10) {
+                    title.classList.add('shake');
+                    alert('🎮 Ultra Speed! Paddle x2!');
+                    this.config.paddleSpeed = 12;
+                    setTimeout(() => title.classList.remove('shake'), 500);
+                    this.secretClicks = 0;
+                } else if (this.secretClicks === 5) {
+                    this.soundManager.play('paddleHit');
+                }
+            });
+        }
+
+        // Footer clicks
+        const footer = document.getElementById('gameFooter');
+        if (footer) {
+            footer.addEventListener('click', () => {
+                this.footerClicks++;
+                if (this.footerClicks === 7) {
+                    alert('👻 Secrets: "disco", "matrix", "god"');
+                    this.footerClicks = 0;
+                }
+            });
+        }
+
+        // Author clicks
+        const authorName = document.querySelector('.author-name');
+        if (authorName) {
+            authorName.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.authorClicks++;
+                if (this.authorClicks === 3) {
+                    alert('👨‍💻 Type: "speed", "pong", "matrix", "god"');
+                    this.authorClicks = 0;
+                }
+            });
+        }
+
+        // Canvas click secret
+        this.canvas.addEventListener('click', () => {
+            if (!this.gameRunning) return;
+            this.canvasClicks++;
+            if (this.canvasClicks === 20) {
+                alert('🎯 Ball Tracker! AI gets confused!');
+                this.canvasClicks = 0;
+            }
+        });
+
+        // NEW: Double-click score to instantly win (easter egg)
+        const scoreElement = document.getElementById('score');
+        if (scoreElement) {
+            let clickCount = 0;
+            let timer: number | null = null;
+            scoreElement.addEventListener('click', () => {
+                if (!this.gameRunning) return;
+                clickCount++;
+                if (timer) clearTimeout(timer);
+                timer = window.setTimeout(() => { clickCount = 0; }, 500);
+                if (clickCount === 2) {
+                    scoreElement.classList.add('pulse');
+                    alert('🏆 Score Hacker! You win instantly!');
+                    this.playerScore = this.config.winScore;
+                    this.updateScore();
+                    this.checkGameOver();
+                    setTimeout(() => scoreElement.classList.remove('pulse'), 1000);
+                    clickCount = 0;
+                    if (timer) { clearTimeout(timer); timer = null; }
+                }
+            });
+        }
+    }
+
+    /**
+     * Helper: ability key mapping
      */
     private isAbilityKey(pressedKey: string, abilityKey: string): boolean {
         if (abilityKey === 'SPACE') return pressedKey === ' ';
@@ -428,8 +307,7 @@ export class PongGame {
     }
 
     /**
-     * Activate a player ability
-     * @private
+     * Activate player's ability
      */
     private activatePlayerAbility(type: AbilityType): void {
         const activated = this.player.activateAbility(type);
@@ -437,35 +315,23 @@ export class PongGame {
 
         switch (type) {
             case AbilityType.SMASH:
-                this.balls.forEach(ball => {
-                    ball.speedX *= 1.5;
-                    ball.speedY *= 1.2;
-                });
+                this.balls.forEach(ball => { ball.speedX *= 1.5; ball.speedY *= 1.2; });
                 this.soundManager.play('smash');
                 break;
-
             case AbilityType.SUPER_SMASH:
-                this.balls.forEach(ball => {
-                    ball.speedX *= 2.0;
-                    ball.speedY *= 1.5;
-                });
+                this.balls.forEach(ball => { ball.speedX *= 2.0; ball.speedY *= 1.5; });
                 this.soundManager.play('smash');
-                this.soundManager.play('score');
                 break;
-
             case AbilityType.SHIELD:
                 this.soundManager.play('shield');
                 break;
-
             case AbilityType.SPEED_BOOST:
                 this.soundManager.play('speedBoost');
                 break;
-
             case AbilityType.TELEPORT:
                 this.player.teleport(this.canvas.height);
                 this.soundManager.play('teleport');
                 break;
-
             case AbilityType.SLOW_MOTION:
                 this.slowMotionActive = true;
                 this.balls.forEach(ball => ball.applySlowMotion());
@@ -475,58 +341,41 @@ export class PongGame {
                     this.balls.forEach(ball => ball.removeSlowMotion());
                 }, 2000);
                 break;
-
             case AbilityType.GHOST_BALL:
                 this.balls.forEach(ball => ball.setGhost(true));
                 this.soundManager.play('ghostBall');
-                setTimeout(() => {
-                    this.balls.forEach(ball => ball.setGhost(false));
-                }, 1500);
+                setTimeout(() => { this.balls.forEach(ball => ball.setGhost(false)); }, 1500);
                 break;
-
             case AbilityType.GIANT_PADDLE:
                 this.soundManager.play('giantPaddle');
                 break;
-
             case AbilityType.REVERSE_CONTROLS:
-                // Only affects AI now
+                // Only affects AI movement
                 this.reverseControlsActive = true;
                 this.soundManager.play('reverseControls');
-                setTimeout(() => {
-                    this.reverseControlsActive = false;
-                }, 3000);
+                setTimeout(() => { this.reverseControlsActive = false; }, 3000);
                 break;
-
             case AbilityType.MAGNET:
                 this.magnetActive = true;
                 this.soundManager.play('magnet');
-                setTimeout(() => {
-                    this.magnetActive = false;
-                }, 2000);
+                setTimeout(() => { this.magnetActive = false; }, 2000);
                 break;
-
             case AbilityType.DOUBLE_SCORE:
                 this.doubleScoreActive = true;
                 this.soundManager.play('doubleScore');
                 break;
-
             case AbilityType.FREEZE:
                 this.freezeActive = true;
                 this.soundManager.play('freeze');
-                setTimeout(() => {
-                    this.freezeActive = false;
-                }, 1500);
+                setTimeout(() => { this.freezeActive = false; }, 1500);
                 break;
-
             case AbilityType.MULTI_BALL:
                 this.activateMultiBall();
                 break;
-
             case AbilityType.MINI_PADDLE:
                 this.ai.applyMiniPaddle();
                 this.soundManager.play('freeze');
                 break;
-
             case AbilityType.GRAVITY:
                 this.gravityActive = true;
                 this.balls.forEach(ball => ball.gravityActive = true);
@@ -540,20 +389,17 @@ export class PongGame {
     }
 
     /**
-     * Activate multi-ball ability
-     * @private
+     * Activate Multi-Ball (player)
      */
     private activateMultiBall(): void {
         if (this.multiBallActive || this.balls.length > 1) return;
-
         this.multiBallActive = true;
         this.soundManager.play('multiBall');
 
-        const mainBall = this.balls[0];
-        const ball2 = mainBall.clone(1);
-        const ball3 = mainBall.clone(2);
-
-        this.balls.push(ball2, ball3);
+        const main = this.balls[0];
+        const b2 = main.clone(1);
+        const b3 = main.clone(2);
+        this.balls.push(b2, b3);
 
         setTimeout(() => {
             this.balls = this.balls.slice(0, 1);
@@ -561,292 +407,192 @@ export class PongGame {
         }, 3000);
     }
 
-// -----------------------
-
-    // ... Fortsetzung von Teil 2
-
     /**
-     * Setup UI event listeners
-     * @private
+     * Start a game (select abilities, reset state)
      */
-    private setupUI(): void {
-        document.getElementById('startBtn')!.addEventListener('click', () => this.startGame());
-        document.getElementById('leaderboardBtn')!.addEventListener('click', () => this.showLeaderboard());
-        document.getElementById('soundToggle')!.addEventListener('click', () => {
-            const enabled = this.soundManager.toggle();
-            document.getElementById('soundToggle')!.textContent = `🔊 Sound: ${enabled ? 'ON' : 'OFF'}`;
-        });
-        document.getElementById('pauseBtn')!.addEventListener('click', () => {
-            this.togglePause();
-            this.pauseCount++;
-
-            // Easter egg: pause 15 times
-            if (this.pauseCount === 15) {
-                alert('⏸️ Pause Master! All cooldowns -50% for next game!');
-                this.pauseCount = 0;
-            }
-        });
-        document.getElementById('backBtn')!.addEventListener('click', () => this.showMenu());
-        document.getElementById('menuBtn')!.addEventListener('click', () => this.showMenu());
-        document.getElementById('saveScoreBtn')!.addEventListener('click', () => this.saveScore());
-        document.getElementById('clearBtn')!.addEventListener('click', () => {
-            if (confirm('Clear all leaderboard entries?')) {
-                this.leaderboardManager.clear();
-                this.showLeaderboard();
-            }
-        });
-    }
-
-    /** Show main menu */
-    private showMenu(): void {
-        this.stopGame();
-        this.musicManager.stop();
-        document.body.classList.remove('game-active');
-        document.getElementById('menu')!.classList.remove('hidden');
-        document.getElementById('gameContainer')!.classList.add('hidden');
-        document.getElementById('leaderboard')!.classList.add('hidden');
-        document.getElementById('gameOver')!.classList.add('hidden');
-    }
-
-    /** Show leaderboard with both player and AI scores */
-    private showLeaderboard(): void {
-        this.stopGame();
-        document.body.classList.remove('game-active');
-        document.getElementById('menu')!.classList.add('hidden');
-        document.getElementById('gameContainer')!.classList.add('hidden');
-        document.getElementById('leaderboard')!.classList.remove('hidden');
-        document.getElementById('gameOver')!.classList.add('hidden');
-
-        const tbody = document.getElementById('leaderboardBody') as HTMLTableSectionElement;
-        tbody.innerHTML = '';
-
-        const entries = this.leaderboardManager.getEntries();
-        entries.forEach((entry, index) => {
-            const row = tbody.insertRow();
-            // Score is already formatted as "X - Y"
-            row.innerHTML = `<td>${index + 1}</td><td>${entry.name}</td><td>${entry.score}</td><td>${entry.date}</td>`;
-        });
-
-        if (entries.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No entries yet!</td></tr>';
-        }
-    }
-
-    /** Start a new game */
     private async startGame(): Promise<void> {
         this.stopGame();
 
-        // Select random abilities for both players
         const selectedAbilities = this.abilitySystem.selectRandomAbilities();
         this.player.setAbilities(selectedAbilities);
         this.ai.setAbilities(selectedAbilities);
 
         this.displaySelectedAbilities(selectedAbilities);
 
-        // Start music
         this.musicManager.start();
         document.body.classList.add('game-active');
 
-        // Switch to game screen
         document.getElementById('menu')!.classList.add('hidden');
         document.getElementById('gameContainer')!.classList.remove('hidden');
         document.getElementById('leaderboard')!.classList.add('hidden');
         document.getElementById('gameOver')!.classList.add('hidden');
 
-        // Reset scores
         this.playerScore = 0;
         this.aiScore = 0;
         this.updateScore();
 
-        // Reset ball
         this.ball.reset(this.canvas.width, this.canvas.height);
         this.balls = [this.ball];
 
         this.paused = false;
         this.gameRunning = true;
 
-        // Run countdown
         await this.runCountdown();
 
-        if (this.gameRunning) {
-            this.gameLoop();
-        }
+        if (this.gameRunning) this.gameLoop();
     }
 
-    /** Display selected abilities on screen */
     private displaySelectedAbilities(abilities: Ability[]): void {
         const container = document.getElementById('abilityDisplay');
         if (!container) return;
-
-        container.innerHTML = abilities.map(a =>
-            `<div class="ability-badge" style="background: ${a.color};">
-        ${a.icon} ${a.name} (${a.key})
-      </div>`
-        ).join('');
+        container.innerHTML = abilities.map(a => `<div class="ability-badge" style="background: ${a.color};">
+      ${a.icon} ${a.name} (${a.key})
+    </div>`).join('');
     }
 
-    /** Run 3-2-1 countdown */
     private async runCountdown(): Promise<void> {
         this.countdownActive = true;
-
         for (let i = 3; i > 0; i--) {
             this.countdown = i;
             this.draw();
             this.soundManager.play('countdown');
             await this.sleep(1000);
         }
-
         this.countdown = 0;
         this.countdownActive = false;
     }
 
-    /** Sleep utility for async/await */
-    private sleep(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    private sleep(ms: number): Promise<void> { return new Promise(r => setTimeout(r, ms)); }
 
-    /** Stop game loop */
     private stopGame(): void {
         this.gameRunning = false;
         this.countdownActive = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
+        if (this.animationId) { cancelAnimationFrame(this.animationId); this.animationId = null; }
     }
 
-    /** Toggle pause state */
     private togglePause(): void {
         if (!this.gameRunning || this.countdownActive) return;
-
         this.paused = !this.paused;
         document.getElementById('pauseBtn')!.textContent = this.paused ? 'Resume' : 'Pause';
         if (!this.paused) this.gameLoop();
     }
 
-    /** Main game loop */
     private gameLoop(): void {
         if (this.paused || !this.gameRunning || this.countdownActive) return;
-
         this.update();
         this.draw();
-
         this.animationId = requestAnimationFrame(() => this.gameLoop());
     }
 
     /**
-    * Update game state
-    * @private
-    */
+     * Update game state and AI heuristics
+     */
     private update(): void {
-        // Player movement (not affected by reverse controls)
+        // Player input
         const upPressed = this.keys['w'] || this.keys['W'] || this.keys['ArrowUp'];
         const downPressed = this.keys['s'] || this.keys['S'] || this.keys['ArrowDown'];
-
         if (upPressed) this.player.move(-1, this.canvas.height);
         if (downPressed) this.player.move(1, this.canvas.height);
-
         this.player.update();
 
-        // AI movement and logic
+        // AI update & heuristics
         if (!this.freezeActive) {
             this.ai.update();
 
             const aiCenter = this.ai.y + this.ai.height / 2;
-            const targetBall = this.balls[0];
-
-            // AI direction (AFFECTED by reverse controls)
+            const targetBall = this.balls[0]; // main tracking ball
             const aiDirection = this.reverseControlsActive ? -1 : 1;
 
-            // AI can't see ghost balls - moves randomly
+            // Track visible ball; be confused when ghost
             if (!targetBall.isGhost) {
                 if (aiCenter < targetBall.y - 35) this.ai.move(1 * aiDirection, this.canvas.height);
                 else if (aiCenter > targetBall.y + 35) this.ai.move(-1 * aiDirection, this.canvas.height);
             } else {
-                // Random movement when ball is invisible
-                if (Math.random() < 0.02) {
-                    this.ai.move(Math.random() > 0.5 ? 1 : -1, this.canvas.height);
-                }
+                // random jitter movement while invisible
+                if (Math.random() < 0.02) this.ai.move(Math.random() > 0.5 ? 1 : -1, this.canvas.height);
             }
 
-            // AI ability usage (FIXED: smarter teleport usage)
-            if (!targetBall.isGhost && Math.abs(targetBall.x - this.ai.x) < 150 && targetBall.getSpeed() > 5) {
-                const random = Math.random();
+            // AI ability usage: use abilities more selectively to avoid spam
+            if (!targetBall.isGhost && Math.abs(targetBall.x - this.ai.x) < 160 && targetBall.getSpeed() > 5) {
+                const rand = Math.random();
                 const abilities = this.ai.getAssignedAbilities();
                 const distanceFromBall = Math.abs(aiCenter - targetBall.y);
 
-                // Ghost Ball usage (25% chance when ball is close)
-                if (random < 0.25 && abilities.some(a => a.type === AbilityType.GHOST_BALL)) {
+                // Ghost Ball: when ball is dangerously close and AI wants to confuse player
+                if (rand < 0.18 && abilities.some(a => a.type === AbilityType.GHOST_BALL)) {
                     if (this.ai.activateAbility(AbilityType.GHOST_BALL)) {
-                        this.balls.forEach(ball => ball.setGhost(true));
+                        this.balls.forEach(b => b.setGhost(true));
                         this.soundManager.play('ghostBall');
-                        setTimeout(() => {
-                            this.balls.forEach(ball => ball.setGhost(false));
-                        }, 1500);
+                        setTimeout(() => { this.balls.forEach(b => b.setGhost(false)); }, 1500);
                     }
                 }
-                // Multi-Ball usage (20% chance when ball is fast)
-                else if (random < 0.45 && targetBall.getSpeed() > 7 && abilities.some(a => a.type === AbilityType.MULTI_BALL)) {
+                // Multi-Ball: only if ball is fast and AI is trailing or wants aggressive play
+                else if (rand >= 0.18 && rand < 0.36 && targetBall.getSpeed() > 7 && abilities.some(a => a.type === AbilityType.MULTI_BALL)) {
                     if (this.ai.activateAbility(AbilityType.MULTI_BALL) && !this.multiBallActive && this.balls.length === 1) {
                         this.multiBallActive = true;
                         this.soundManager.play('multiBall');
-
-                        const mainBall = this.balls[0];
-                        const ball2 = mainBall.clone(1);
-                        const ball3 = mainBall.clone(2);
-
-                        this.balls.push(ball2, ball3);
-
-                        setTimeout(() => {
-                            this.balls = this.balls.slice(0, 1);
-                            this.multiBallActive = false;
-                        }, 3000);
+                        const main = this.balls[0];
+                        this.balls.push(main.clone(1), main.clone(2));
+                        setTimeout(() => { this.balls = this.balls.slice(0, 1); this.multiBallActive = false; }, 3000);
                     }
                 }
-                // Shield usage
-                else if (random < 0.60 && abilities.some(a => a.type === AbilityType.SHIELD)) {
+                // Double score: use only when AI is about to score (ball near player side) and ability available
+                else if (rand >= 0.36 && rand < 0.52 && abilities.some(a => a.type === AbilityType.DOUBLE_SCORE)) {
+                    // AI will attempt double-score opportunistically if it expects to get the point
+                    if (Math.abs(targetBall.x - this.ai.x) < 100 && targetBall.x > this.canvas.width / 2) {
+                        if (this.ai.activateAbility(AbilityType.DOUBLE_SCORE)) {
+                            this.doubleScoreActive = true;
+                            this.soundManager.play('doubleScore');
+                            // doubleScoreActive will be consumed when scoring occurs
+                        }
+                    }
+                }
+                // Shield: protect against very fast returning shots
+                else if (rand >= 0.52 && rand < 0.68 && abilities.some(a => a.type === AbilityType.SHIELD)) {
                     this.ai.activateAbility(AbilityType.SHIELD);
                 }
-                // Smash usage
-                else if (random < 0.75 && abilities.some(a => a.type === AbilityType.SMASH)) {
+                // Smash: occasional aggressive hit
+                else if (rand >= 0.68 && rand < 0.80 && abilities.some(a => a.type === AbilityType.SMASH)) {
                     if (this.ai.activateAbility(AbilityType.SMASH)) {
-                        this.balls.forEach(ball => {
-                            ball.speedX *= 1.5;
-                            ball.speedY *= 1.2;
-                        });
+                        this.balls.forEach(b => { b.speedX *= 1.5; b.speedY *= 1.2; });
+                        this.soundManager.play('smash');
                     }
                 }
-                // Teleport usage - FIXED: Only when far from ball AND ball is very close to AI paddle
-                else if (random < 0.82 && distanceFromBall > 150 && Math.abs(targetBall.x - this.ai.x) < 80 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
-                    this.ai.activateAbility(AbilityType.TELEPORT);
-                    this.ai.teleport(this.canvas.height);
+                // Teleport: only when AI is far from ball vertically and the ball is already very close to AI's paddle
+                else if (rand >= 0.80 && rand < 0.88 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
+                    if (distanceFromBall > 120 && Math.abs(targetBall.x - this.ai.x) < 80) {
+                        this.ai.activateAbility(AbilityType.TELEPORT);
+                        this.ai.teleport(this.canvas.height);
+                    }
                 }
-                // Mini Paddle usage
-                else if (random < 0.92 && abilities.some(a => a.type === AbilityType.MINI_PADDLE)) {
-                    this.ai.activateAbility(AbilityType.MINI_PADDLE);
-                    this.player.applyMiniPaddle();
+                // Mini paddle: use rarely to disrupt player
+                else if (rand >= 0.88 && rand < 0.95 && abilities.some(a => a.type === AbilityType.MINI_PADDLE)) {
+                    // reduced frequency: AI won't spam mini-paddle
+                    if (Math.random() < 0.33) {
+                        this.ai.activateAbility(AbilityType.MINI_PADDLE);
+                        this.player.applyMiniPaddle();
+                    }
                 }
             }
         }
 
-        // Magnet effect - FIXED: only pulls balls on player's side AND in front of paddle
+        // Magnet effect: only pulls balls on player's side and in front of paddle,
+        // and only if player's mini-paddle not active (magnet should respect mini-state).
         if (this.magnetActive) {
             const paddleCenter = this.player.y + this.player.height / 2;
             this.balls.forEach(ball => {
-                // Only affect balls on player's side AND in front of paddle
                 if (ball.x < this.canvas.width / 2 && ball.x > this.player.x + this.player.width) {
                     const dy = paddleCenter - ball.y;
                     const distance = Math.abs(dy);
-
                     if (distance < 200) {
-                        const force = Math.max(0.005, 0.015 * (1 - distance / 200));
+                        const force = Math.max(0.004, 0.015 * (1 - distance / 200));
                         ball.speedY += dy * force;
                     }
                 }
             });
         }
 
-        // Update all balls
+        // Update all balls: collisions, scoring, physics
         this.balls = this.balls.filter(ball => {
             ball.update();
 
@@ -857,7 +603,7 @@ export class PongGame {
                 this.soundManager.play('wallHit');
             }
 
-            // Paddle collision
+            // Paddle collisions
             const playerCollision = this.checkCollision(ball, this.player);
             const aiCollision = this.checkCollision(ball, this.ai);
 
@@ -887,11 +633,8 @@ export class PongGame {
                     }
                 }
 
-                if (playerCollision) {
-                    ball.x = this.player.x + this.player.width + ball.radius;
-                } else {
-                    ball.x = this.ai.x - ball.radius;
-                }
+                if (playerCollision) ball.x = this.player.x + this.player.width + ball.radius;
+                else ball.x = this.ai.x - ball.radius;
             }
 
             // Scoring
@@ -899,14 +642,16 @@ export class PongGame {
                 const points = this.doubleScoreActive ? 2 : 1;
                 this.aiScore += points;
                 this.soundManager.play('score');
+                // Double score consumed when point against player
+                this.doubleScoreActive = false;
                 this.updateScore();
                 this.checkGameOver();
                 return false;
-            }
-            else if (ball.x + ball.radius >= this.canvas.width) {
+            } else if (ball.x + ball.radius >= this.canvas.width) {
                 const points = this.doubleScoreActive ? 2 : 1;
                 this.playerScore += points;
                 this.soundManager.play('score');
+                this.doubleScoreActive = false;
                 this.updateScore();
                 this.checkGameOver();
                 return false;
@@ -917,71 +662,60 @@ export class PongGame {
 
         // Reset if all balls gone
         if (this.balls.length === 0 && this.gameRunning) {
-            this.doubleScoreActive = false;
             this.ball.reset(this.canvas.width, this.canvas.height);
             this.balls = [this.ball];
         }
     }
 
-    /** Check collision between ball and paddle */
+    /**
+     * Simple circular collision check
+     */
     private checkCollision(ball: Ball, paddle: Paddle): boolean {
         const closestX = Math.max(paddle.x, Math.min(ball.x, paddle.x + paddle.width));
         const closestY = Math.max(paddle.y, Math.min(ball.y, paddle.y + paddle.height));
-
-        const distanceX = ball.x - closestX;
-        const distanceY = ball.y - closestY;
-        const distanceSquared = distanceX * distanceX + distanceY * distanceY;
-
-        return distanceSquared < (ball.radius * ball.radius);
+        const dx = ball.x - closestX;
+        const dy = ball.y - closestY;
+        return (dx * dx + dy * dy) < (ball.radius * ball.radius);
     }
 
-// -----------------------
-
-    // ... Fortsetzung von Teil 3
-
     /**
-     * Draw everything on canvas
-     * @private
+     * Draw everything
      */
     private draw(): void {
-        // Clear canvas
+        // background
         this.ctx.fillStyle = '#1a1a2e';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Effect overlays
+        // overlays for effects
         if (this.slowMotionActive) {
-            this.ctx.fillStyle = 'rgba(76, 222, 128, 0.1)';
+            this.ctx.fillStyle = 'rgba(76, 222, 128, 0.08)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
-
         if (this.freezeActive) {
-            this.ctx.fillStyle = 'rgba(96, 165, 250, 0.15)';
+            this.ctx.fillStyle = 'rgba(96, 165, 250, 0.12)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
-
         if (this.reverseControlsActive) {
-            this.ctx.fillStyle = 'rgba(236, 72, 153, 0.1)';
+            this.ctx.fillStyle = 'rgba(236, 72, 153, 0.08)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
-
         if (this.magnetActive) {
             const gradient = this.ctx.createRadialGradient(
                 this.player.x, this.player.y + this.player.height / 2, 0,
                 this.player.x, this.player.y + this.player.height / 2, 150
             );
-            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+            gradient.addColorStop(0, 'rgba(139, 92, 246, 0.2)');
             gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
             this.ctx.fillStyle = gradient;
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
-
         if (this.gravityActive) {
-            this.ctx.fillStyle = 'rgba(34, 211, 238, 0.1)';
+            this.ctx.fillStyle = 'rgba(34, 211, 238, 0.06)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
 
-        // Center line
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        // center line
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.22)';
         this.ctx.setLineDash([10, 10]);
         this.ctx.beginPath();
         this.ctx.moveTo(this.canvas.width / 2, 0);
@@ -989,61 +723,45 @@ export class PongGame {
         this.ctx.stroke();
         this.ctx.setLineDash([]);
 
-        // Draw player paddle
+        // paddles & balls
         this.player.draw(this.ctx);
-
-        // Draw AI paddle (with freeze effect)
         if (this.freezeActive) {
             this.ctx.save();
-            this.ctx.globalAlpha = 0.7;
+            this.ctx.globalAlpha = 0.75;
             this.ai.draw(this.ctx);
             this.ctx.restore();
-
-            // Ice crystals
-            this.ctx.fillStyle = 'rgba(96, 165, 250, 0.5)';
-            for (let i = 0; i < 5; i++) {
-                const x = this.ai.x + Math.random() * this.ai.width;
-                const y = this.ai.y + Math.random() * this.ai.height;
-                this.ctx.fillRect(x, y, 3, 3);
-            }
         } else {
             this.ai.draw(this.ctx);
         }
 
-        // Draw all balls
         this.balls.forEach(ball => ball.draw(this.ctx));
 
-        // Draw UI elements
+        // UI
         this.drawSpeedometer();
-        this.drawAbilityHints();
+        this.drawAbilityHints(); // moved slightly down for readability
         this.drawActiveEffects();
 
-        // Countdown overlay
+        // countdown overlay
         if (this.countdownActive && this.countdown > 0) {
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
             this.ctx.fillStyle = 'white';
             this.ctx.font = 'bold 120px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText(this.countdown.toString(), this.canvas.width / 2, this.canvas.height / 2);
-
             this.ctx.font = '24px Arial';
             this.ctx.fillText('Get Ready!', this.canvas.width / 2, this.canvas.height / 2 + 80);
-
             this.ctx.textAlign = 'left';
             this.ctx.textBaseline = 'alphabetic';
         }
     }
 
     /**
-     * Draw active effects HUD
-     * @private
+     * Draw active effects HUD (moved down for readability)
      */
     private drawActiveEffects(): void {
         const effects: string[] = [];
-
         if (this.slowMotionActive) effects.push('🟢 Slow Motion');
         if (this.reverseControlsActive) effects.push('🔄 Reversed');
         if (this.magnetActive) effects.push('🧲 Magnet');
@@ -1053,18 +771,15 @@ export class PongGame {
         if (this.gravityActive) effects.push('🌍 Gravity');
 
         if (effects.length > 0) {
-            // IMPROVED: Better text visibility with outline
-            this.ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+            this.ctx.strokeStyle = 'rgba(0,0,0,0.9)';
             this.ctx.lineWidth = 4;
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+            this.ctx.fillStyle = 'rgba(255,255,255,1)';
             this.ctx.font = 'bold 18px Arial';
             this.ctx.textAlign = 'center';
 
-            effects.forEach((effect, index) => {
-                const y = 60 + index * 28;
-                // Draw outline
+            effects.forEach((effect, idx) => {
+                const y = 80 + idx * 28; // moved slightly down to avoid overlap with top HUD
                 this.ctx.strokeText(effect, this.canvas.width / 2, y);
-                // Draw text
                 this.ctx.fillText(effect, this.canvas.width / 2, y);
             });
 
@@ -1073,44 +788,33 @@ export class PongGame {
         }
     }
 
-    /** Draw ability hints at bottom */
     private drawAbilityHints(): void {
         const abilities = this.player.getAssignedAbilities();
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        this.ctx.fillStyle = 'rgba(255,255,255,0.5)';
         this.ctx.font = '14px Arial';
-
         const hints = abilities.map(a => `${a.key}: ${a.name}`).join(' | ');
-        this.ctx.fillText(hints, 10, this.canvas.height - 10);
-
-        this.ctx.fillText('↑↓ or W/S: Move', 10, this.canvas.height - 30);
+        // moved up a bit above bottom to avoid being cut off on small screens
+        this.ctx.fillText(hints, 10, this.canvas.height - 20);
+        this.ctx.fillText('↑↓ or W/S: Move', 10, this.canvas.height - 40);
     }
 
-    /** Draw speedometer */
     private drawSpeedometer(): void {
         const speed = this.balls.length > 0 ? this.balls[0].getSpeed() : 0;
         const maxDisplaySpeed = 15;
         const speedPercent = Math.min(speed / maxDisplaySpeed, 1);
-
         const x = this.canvas.width / 2 - 100;
         const y = 20;
         const width = 200;
         const height = 20;
-
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        this.ctx.fillStyle = 'rgba(255,255,255,0.2)';
         this.ctx.fillRect(x, y, width, height);
-
         const gradient = this.ctx.createLinearGradient(x, y, x + width, y);
-        gradient.addColorStop(0, '#4ade80');
-        gradient.addColorStop(0.5, '#fbbf24');
-        gradient.addColorStop(1, '#ef4444');
-
+        gradient.addColorStop(0, '#4ade80'); gradient.addColorStop(0.5, '#fbbf24'); gradient.addColorStop(1, '#ef4444');
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(x, y, width * speedPercent, height);
-
         this.ctx.strokeStyle = 'white';
         this.ctx.lineWidth = 2;
         this.ctx.strokeRect(x, y, width, height);
-
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 12px Arial';
         this.ctx.textAlign = 'center';
@@ -1118,22 +822,34 @@ export class PongGame {
         this.ctx.textAlign = 'left';
     }
 
-    /** Update score display */
     private updateScore(): void {
         document.getElementById('playerScore')!.textContent = this.playerScore.toString();
         document.getElementById('aiScore')!.textContent = this.aiScore.toString();
     }
 
-    /** Check if game is over (first to 10 points) */
+    /**
+     * Check for end of game.
+     * Arcade mode rules: AI reaching 10 ends game (player loses).
+     */
     private checkGameOver(): void {
-        if (this.playerScore >= this.config.winScore || this.aiScore >= this.config.winScore) {
-            this.stopGame();
-            this.musicManager.stop();
-            this.showGameOver();
+        if (this.arcadeMode) {
+            // in Arcade mode game ends when AI reaches 10 or player reaches winScore
+            if (this.aiScore >= 10 || this.playerScore >= this.config.winScore) {
+                this.endGame();
+            }
+        } else {
+            if (this.playerScore >= this.config.winScore || this.aiScore >= this.config.winScore) {
+                this.endGame();
+            }
         }
     }
 
-    /** Show game over screen */
+    private endGame(): void {
+        this.stopGame();
+        this.musicManager.stop();
+        this.showGameOver();
+    }
+
     private showGameOver(): void {
         document.body.classList.remove('game-active');
         document.getElementById('gameContainer')!.classList.add('hidden');
@@ -1144,15 +860,41 @@ export class PongGame {
         document.getElementById('finalScore')!.textContent = `Final Score: ${this.playerScore} - ${this.aiScore}`;
     }
 
-    /** Save score to leaderboard (with both player and AI scores) */
+    /**
+     * Save the current score to leaderboard including mode (standard | arcade)
+     */
     private saveScore(): void {
         const nameInput = document.getElementById('playerName') as HTMLInputElement;
-        const name = nameInput.value.trim() || 'Anonymous';
-
-        // Save with both scores
-        this.leaderboardManager.addEntry(name, this.playerScore, this.aiScore);
-
+        const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'Anonymous';
+        const mode = this.arcadeMode ? 'arcade' : 'standard';
+        // save both scores and mode
+        this.leaderboardManager.addEntry(name, this.playerScore, this.aiScore, mode);
         this.showMenu();
-        nameInput.value = '';
+        if (nameInput) nameInput.value = '';
+    }
+
+    /**
+     * Show leaderboard UI (includes mode display)
+     */
+    private showLeaderboard(): void {
+        this.stopGame();
+        document.body.classList.remove('game-active');
+        document.getElementById('menu')!.classList.add('hidden');
+        document.getElementById('gameContainer')!.classList.add('hidden');
+        document.getElementById('leaderboard')!.classList.remove('hidden');
+        document.getElementById('gameOver')!.classList.add('hidden');
+
+        const tbody = document.getElementById('leaderboardBody') as HTMLTableSectionElement;
+        tbody.innerHTML = '';
+
+        const entries = this.leaderboardManager.getEntries();
+        entries.forEach((entry, index) => {
+            const row = tbody.insertRow();
+            row.innerHTML = `<td>${index + 1}</td><td>${entry.name}</td><td>${entry.score}</td><td>${entry.mode ?? 'standard'}</td><td>${entry.date}</td>`;
+        });
+
+        if (entries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No entries yet!</td></tr>';
+        }
     }
 }
