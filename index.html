@@ -1,34 +1,118 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="PongPlus — Modern TypeScript Pong game (PWA)" />
     <meta name="version" content="1.4.0">
     <title>PongPlus v1.4.0</title>
+
+    <!-- PWA -->
     <link rel="manifest" href="/PongPlus/manifest.json">
+    <meta name="theme-color" content="#764ba2">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
+    <link rel="apple-touch-icon" href="/PongPlus/icons/icon-192x192.png">
+
     <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
     <div id="app">
-        <h1>🏓 PongPlus <span style="font-size:0.5em; opacity:0.7;">v1.4.0</span></h1>
-        <div id="menu" class="menu">
-            <button id="startBtn" class="btn">Start Game</button>
-            <button id="leaderboardBtn" class="btn">Leaderboard</button>
-            <button id="soundToggle" class="btn">🔊 Sound: ON</button>
-            <label style="margin-left:12px;">
-                <input type="checkbox" id="arcadeToggle"> Arcade Mode
-            </label>
-            <button id="installBtn" class="btn install-btn hidden">📱 Install App</button>
-        </div>
-        <!-- rest unchanged -->
+        <header class="header">
+            <h1>🏓 PongPlus <span class="version">v1.4.0</span></h1>
+        </header>
+
+        <main>
+            <section id="menu" class="menu">
+                <div class="menu-controls">
+                    <button id="startBtn" class="btn">Start Game</button>
+                    <button id="leaderboardBtn" class="btn">Leaderboard</button>
+                    <button id="soundToggle" class="btn">🔊 Sound: ON</button>
+
+                    <label class="arcade-label">
+                        <input type="checkbox" id="arcadeToggle"> Arcade Mode
+                        <span class="hint"> (AI plays to 10)</span>
+                    </label>
+
+                    <button id="installBtn" class="btn install-btn hidden">📱 Install App</button>
+                </div>
+
+                <div class="menu-footer">
+                    <p>Play a modern Pong with abilities, music & easter eggs.</p>
+                </div>
+            </section>
+
+            <section id="gameContainer" class="hidden game-container">
+                <div id="hud" class="hud">
+                    <div id="score" class="score">
+                        <span id="playerScore">0</span>
+                        <span class="sep">:</span>
+                        <span id="aiScore">0</span>
+                    </div>
+
+                    <div id="abilityDisplay" class="ability-display"></div>
+                </div>
+
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+                <div class="game-controls">
+                    <button id="pauseBtn" class="btn">Pause</button>
+                </div>
+            </section>
+
+            <section id="leaderboard" class="hidden panel">
+                <h2>🏆 Leaderboard</h2>
+                <table id="leaderboardTable" class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Score</th>
+                            <th>Mode</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody"></tbody>
+                </table>
+
+                <div class="panel-controls">
+                    <button id="backBtn" class="btn">Back to Menu</button>
+                    <button id="clearBtn" class="btn btn-danger">Clear Leaderboard</button>
+                </div>
+            </section>
+
+            <section id="gameOver" class="hidden panel">
+                <h2 id="gameOverTitle"></h2>
+                <p id="finalScore"></p>
+
+                <input id="playerName" type="text" placeholder="Enter your name" maxlength="20">
+                <div class="panel-controls">
+                    <button id="saveScoreBtn" class="btn">Save Score</button>
+                    <button id="menuBtn" class="btn">Back to Menu</button>
+                </div>
+            </section>
+        </main>
+
+        <footer id="gameFooter" class="footer">
+            <div class="author">
+                <span class="author-name">LeanderKafemann</span>
+            </div>
+            <div class="copyright">
+                <small>© 2025 LeanderKafemann. All rights reserved. • v1.4.0</small>
+            </div>
+        </footer>
     </div>
+
     <script type="module" src="/src/main.ts"></script>
+
+    <!-- Service Worker registration (GitHub Pages path) -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/PongPlus/sw.js')
-                    .then(reg => console.log('Service Worker registered:', reg.scope))
-                    .catch(err => console.error('Service Worker registration failed:', err));
+                    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+                    .catch(err => console.error('❌ Service Worker registration failed:', err));
             });
         }
     </script>
