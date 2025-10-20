@@ -4,23 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content="PongPlus — Modern TypeScript Pong game (PWA)" />
-    <meta name="version" content="1.4.1">
-    <title>PongPlus v1.4.1</title>
-
-    <!-- PWA -->
-    <link rel="manifest" href="/PongPlus/manifest.json">
-    <meta name="theme-color" content="#764ba2">
-
-    <!-- Icons -->
-    <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
-    <link rel="apple-touch-icon" href="/PongPlus/icons/icon-192x192.png">
+    <meta name="version" content="1.4.2">
+    <title>PongPlus v1.4.2</title>
 
     <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
     <div id="app">
         <header class="header">
-            <h1>🏓 PongPlus <span class="version">v1.4.1</span></h1>
+            <h1>🏓 PongPlus <span class="version">v1.4.2</span></h1>
         </header>
 
         <main>
@@ -99,22 +91,11 @@
                 <span class="author-name">LeanderKafemann</span>
             </div>
             <div class="copyright">
-                <small>© 2025 LeanderKafemann. All rights reserved. • v1.4.1</small>
+                <small>© 2025 LeanderKafemann. All rights reserved. • v1.4.2</small>
             </div>
         </footer>
     </div>
 
     <script type="module" src="/src/main.ts"></script>
-
-    <!-- Service Worker registration (GitHub Pages path) -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/PongPlus/sw.js')
-                    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
-                    .catch(err => console.error('❌ Service Worker registration failed:', err));
-            });
-        }
-    </script>
 </body>
 </html>

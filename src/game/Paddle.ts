@@ -1,6 +1,6 @@
 /**
  * Paddle - player/AI paddle implementation
- * v1.4.1
+ * v1.4.2 - paddle abilities fixed
  */
 
 import type { Ability } from './AbilitySystem';
@@ -16,7 +16,7 @@ export class Paddle {
     private shieldUntil = 0;
     private smashUntil = 0;
     private superSmashUntil = 0;
-    private miniUntil = 0; // will track when mini effect expires
+    private miniUntil = 0;
 
     constructor(x: number, y: number) {
         this.x = x; this.y = y;
@@ -36,17 +36,16 @@ export class Paddle {
     }
 
     update(): void {
-        // handle mini-paddle expiration if active
+        // expire mini-paddle
         if (this.miniUntil && Date.now() > this.miniUntil) {
-            this.height = 100; // reset to default
+            this.height = 100;
             this.miniUntil = 0;
         }
-        // other time-based state handling could be placed here
+        // expire smash/shield states are time-based and read on demand
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
-        ctx.fillStyle = this.hasShield() ? '#60a5fa' : '#fff';
-        // Use rounded rect if supported; fallback to rect
+        ctx.fillStyle = this.hasShield() ? '#60a5fa' : '#ffffff';
         if ((ctx as any).roundRect) {
             (ctx as any).roundRect(this.x, this.y, this.width, this.height, 6);
             ctx.fill();
@@ -68,25 +67,43 @@ export class Paddle {
     }
 
     activateAbility(type: any): boolean {
-        // Basic handling for shield state so that AI/player usage results in real effect
-        // For more advanced cooldowns and resource checks, expand this method.
-        switch (type) {
+        // Centralized paddle ability effects that actually set state
+        if (!type) return false;
+        const t = typeof type === 'string' ? type : (type as any).toString();
+
+        switch (t) {
             case 'SHIELD':
-            case (type && (type as any).SHIELD):
-                this.shieldUntil = Date.now() + 2000;
+            case 'AbilityType.SHIELD':
+                this.shieldUntil = Date.now() + 2500; // shield lasts 2.5s
+                return true;
+            case 'SMASH':
+            case 'AbilityType.SMASH':
+                this.smashUntil = Date.now() + 800;
+                return true;
+            case 'SUPER_SMASH':
+            case 'AbilityType.SUPER_SMASH':
+                this.superSmashUntil = Date.now() + 900;
+                return true;
+            case 'MINI_PADDLE':
+            case 'AbilityType.MINI_PADDLE':
+                this.applyMiniPaddle();
+                return true;
+            case 'GIANT_PADDLE':
+            case 'AbilityType.GIANT_PADDLE':
+                this.height = Math.min(300, this.height * 1.5);
+                setTimeout(() => { this.height = 100; }, 5000);
                 return true;
             default:
+                // Other abilities handled at game level
                 return true;
         }
     }
 
     teleport(canvasHeight: number): void {
-        // center vertically
         this.y = Math.max(0, Math.min(canvasHeight - this.height, (canvasHeight / 2) - (this.height / 2)));
     }
 
     applyMiniPaddle(): void {
-        // shrink paddle temporarily
         this.height = Math.max(30, Math.floor(this.height * 0.5));
         this.miniUntil = Date.now() + 3000;
         setTimeout(() => {

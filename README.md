@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![PongPlus Banner](https://img.shields.io/badge/PongPlus-v1.4.10-blueviolet?style=for-the-badge)
+![PongPlus Banner](https://img.shields.io/badge/PongPlus-v1.4.2-blueviolet?style=for-the-badge)
 [![Live Demo](https://img.shields.io/badge/Play-Now-success?style=for-the-badge&logo=github)](https://leanderkafemann.github.io/PongPlus/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -350,6 +350,6 @@ Made with ❤️ and TypeScript
 
 © 2025 LeanderKafemann. All rights reserved.
 
-v1.4.1
+v1.4.2
 
 </div> 

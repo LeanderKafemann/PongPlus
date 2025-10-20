@@ -1,6 +1,6 @@
 {
   "name": "pongplus",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "PongPlus - Progressive Web App: Modern TypeScript Pong game with abilities, music, and easter eggs",
   "author": "LeanderKafemann",
   "license": "MIT",
@@ -19,18 +19,5 @@
     "typescript": "^5.0.2",
     "vite": "^5.0.0",
     "vite-plugin-pwa": "^0.17.0"
-  },
-  "keywords": [
-    "pong",
-    "game",
-    "typescript",
-    "canvas",
-    "html5",
-    "abilities",
-    "pwa"
-  ],
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
   }
 }

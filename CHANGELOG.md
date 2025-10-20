@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.2] - 2025-10-20
+
+### Fixed
+- Split PongGame into modular files for easier maintenance.
+- Fixed paddle-based abilities (Shield, Mini-Paddle, Teleport, Giant Paddle).
+- Arcade Mode bug fixed; AI wins at 10 when Arcade Mode is toggled.
+- Restored and improved UI styles to a more playful look reminiscent of v1.3.3.
+- Fixed screens showing in parallel; UIManager now ensures only one screen visible.
+- Service Worker disabled to avoid stale caching issues.
+
+### Added
+- New Easter Egg "Polaroid" (type "photo") — snapshot and download of canvas.
+- Added a few extra abilities to the pool and fixed their activation logic.
+
+### Notes
+- Please run a full build and manual QA (see README) before merging.
+
+---
+
 ## [1.4.1] - 2025-10-20
 
 ### Fixed
