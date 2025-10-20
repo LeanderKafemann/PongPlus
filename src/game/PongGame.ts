@@ -104,6 +104,8 @@ export class PongGame {
     // Ability cooldowns
     private abilityCooldowns: Map<AbilityType, number> = new Map();
 
+    private musicIndicatorEl: HTMLElement | null = null;
+
     constructor() {
         // get DOM elements
         const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement | null;
