@@ -18,8 +18,7 @@ export enum AbilityType {
     FREEZE = 'FREEZE',
     MULTI_BALL = 'MULTI_BALL',
     MINI_PADDLE = 'MINI_PADDLE',
-    GRAVITY = 'GRAVITY',
-    SUPER_SMASH = 'SUPER_SMASH'
+    GRAVITY = 'GRAVITY'
 }
 
 export type Ability = {

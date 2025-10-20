@@ -3,7 +3,7 @@
  * v1.4.0
  */
 
-import type { Ability, AbilityType } from './AbilitySystem';
+import type { Ability } from './AbilitySystem';
 
 export class Paddle {
     public x: number;
@@ -16,7 +16,7 @@ export class Paddle {
     private shieldUntil = 0;
     private smashUntil = 0;
     private superSmashUntil = 0;
-    private miniUntil = 0;
+    private miniUntil = 0; // will track when mini effect expires
 
     constructor(x: number, y: number) {
         this.x = x; this.y = y;
@@ -36,16 +36,23 @@ export class Paddle {
     }
 
     update(): void {
-        // reduce temporary states durations based on time elsewhere or implement timers
-        // For simplicity, we rely on external timeouts to toggle states (applyMiniPaddle etc.)
+        // handle mini-paddle expiration if active
+        if (this.miniUntil && Date.now() > this.miniUntil) {
+            this.height = 100; // reset to default
+            this.miniUntil = 0;
+        }
+        // other time-based state handling could be placed here
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
         ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.roundRect?.(this.x, this.y, this.width, this.height, 6); // If supported
-        // fallback:
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        // Use rounded rect if supported; fallback to rect
+        if ((ctx as any).roundRect) {
+            (ctx as any).roundRect(this.x, this.y, this.width, this.height, 6);
+            ctx.fill();
+        } else {
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
     }
 
     hasShield(): boolean {
@@ -60,22 +67,27 @@ export class Paddle {
         return Date.now() < this.superSmashUntil;
     }
 
-    activateAbility(type: AbilityType): boolean {
-        // Placeholder: return true if ability "available" - in real impl check cooldowns
-        // For AI we simply return true to indicate usage
+    activateAbility(type: any): boolean {
+        // Placeholder - in a full impl check cooldowns & availability
+        // For AI usage, returning true simulates activation success.
         return true;
     }
 
     teleport(canvasHeight: number): void {
-        // Snap to center vertical
-        this.y = Math.max(0, Math.min(canvasHeight - this.height, canvasHeight / 2 - this.height / 2));
+        // center vertically
+        this.y = Math.max(0, Math.min(canvasHeight - this.height, (canvasHeight / 2) - (this.height / 2)));
     }
 
     applyMiniPaddle(): void {
-        this.height = Math.max(30, this.height * 0.5);
+        // shrink paddle temporarily
+        this.height = Math.max(30, Math.floor(this.height * 0.5));
         this.miniUntil = Date.now() + 3000;
         setTimeout(() => {
-            this.height = 100;
-        }, 3000);
+            // ensure expiration at end (in case update didn't run)
+            if (Date.now() >= this.miniUntil) {
+                this.height = 100;
+                this.miniUntil = 0;
+            }
+        }, 3200);
     }
 }
