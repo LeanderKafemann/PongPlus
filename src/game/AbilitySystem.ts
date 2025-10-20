@@ -1,6 +1,6 @@
 ﻿/**
  * AbilitySystem - defines ability pool and selection
- * v1.4.0
+ * v1.4.1
  */
 
 export enum AbilityType {

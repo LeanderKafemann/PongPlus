@@ -1,9 +1,11 @@
-/* Minimal styles for PongPlus v1.4.0 */
+/* Styles for PongPlus v1.4.1 - restored look + disco + polaroid */
+
 :root {
     --bg: #0f172a;
     --card: #111827;
     --accent: #7c3aed;
     --muted: rgba(255,255,255,0.6);
+    --glass: rgba(255,255,255,0.03);
 }
 
 html, body {
@@ -27,7 +29,7 @@ html, body {
 }
 
 .menu {
-    background: rgba(255,255,255,0.02);
+    background: var(--glass);
     padding: 16px;
     border-radius: 12px;
     margin-bottom: 12px;
@@ -76,7 +78,7 @@ html, body {
 
 .game-container {
     position: relative;
-    background: rgba(255,255,255,0.02);
+    background: var(--glass);
     padding: 8px;
     border-radius: 12px;
 }
@@ -86,10 +88,11 @@ canvas {
     margin: 0 auto;
     border-radius: 6px;
     background: #0b1220;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
 }
 
 .panel {
-    background: rgba(255,255,255,0.02);
+    background: var(--glass);
     padding: 16px;
     border-radius: 12px;
 }
@@ -128,4 +131,96 @@ canvas {
     opacity: 0.9;
     display: flex;
     justify-content: space-between;
+}
+
+/* Disco mode */
+.disco-mode {
+    animation: disco-background 1s linear infinite;
+}
+
+@keyframes disco-background {
+    0% {
+        filter: hue-rotate(0deg);
+    }
+
+    50% {
+        filter: hue-rotate(90deg);
+    }
+
+    100% {
+        filter: hue-rotate(180deg);
+    }
+}
+
+.disco-ball {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff 0%, rgba(255,255,255,0) 30%), linear-gradient(45deg,#ff0080,#7928ca);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    opacity: 0.95;
+    z-index: 9999;
+}
+
+/* Polaroid flash */
+.polaroid-flash {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9998;
+    transition: opacity 0.25s ease-out;
+}
+
+    .polaroid-flash.show {
+        opacity: 0.95;
+        transition: opacity 0.15s ease-in;
+    }
+
+/* Polaroid thumbnail download hint */
+.polaroid-hint {
+    position: fixed;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    z-index: 9999;
+    display: none;
+}
+
+    .polaroid-hint.show {
+        display: block;
+        animation: polaroid-fade 3s ease-in-out;
+    }
+
+@keyframes polaroid-fade {
+    0% {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
 }

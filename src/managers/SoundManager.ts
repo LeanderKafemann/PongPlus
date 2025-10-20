@@ -1,6 +1,6 @@
 /**
  * SoundManager - lightweight WebAudio-based SFX manager
- * v1.4.0
+ * v1.4.1
  */
 
 export class SoundManager {

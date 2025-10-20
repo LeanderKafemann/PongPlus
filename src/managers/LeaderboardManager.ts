@@ -2,7 +2,7 @@
  * LeaderboardManager - Handles persistent score storage
  * - robust migration from old numeric score formats
  * - supports storing mode (standard / arcade)
- * @version 1.4.0
+ * v1.4.1
  */
 
 import type { LeaderboardEntry } from '../game/types';

@@ -1,6 +1,6 @@
 /**
  * Paddle - player/AI paddle implementation
- * v1.4.0
+ * v1.4.1
  */
 
 import type { Ability } from './AbilitySystem';
@@ -45,7 +45,7 @@ export class Paddle {
     }
 
     draw(ctx: CanvasRenderingContext2D): void {
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = this.hasShield() ? '#60a5fa' : '#fff';
         // Use rounded rect if supported; fallback to rect
         if ((ctx as any).roundRect) {
             (ctx as any).roundRect(this.x, this.y, this.width, this.height, 6);
@@ -67,12 +67,18 @@ export class Paddle {
         return Date.now() < this.superSmashUntil;
     }
 
-    activateAbility(_type: any): boolean {
-        // Placeholder - in a full implementation check cooldowns & availability.
-        // For AI usage, returning true simulates activation success.
-        return true;
+    activateAbility(type: any): boolean {
+        // Basic handling for shield state so that AI/player usage results in real effect
+        // For more advanced cooldowns and resource checks, expand this method.
+        switch (type) {
+            case 'SHIELD':
+            case (type && (type as any).SHIELD):
+                this.shieldUntil = Date.now() + 2000;
+                return true;
+            default:
+                return true;
+        }
     }
-
 
     teleport(canvasHeight: number): void {
         // center vertically
@@ -84,7 +90,6 @@ export class Paddle {
         this.height = Math.max(30, Math.floor(this.height * 0.5));
         this.miniUntil = Date.now() + 3000;
         setTimeout(() => {
-            // ensure expiration at end (in case update didn't run)
             if (Date.now() >= this.miniUntil) {
                 this.height = 100;
                 this.miniUntil = 0;

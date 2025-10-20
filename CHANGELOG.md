@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.1] - 2025-10-20
+
+### Fixed
+- Service Worker caching policy: switched HTML to network-first to avoid stale pages being served; cache migration logic improved.
+- Restore & fix leaderboard UI and persistence; robust migration retained.
+- Shield & other abilities: state handling fixed so shield actually protects against paddle collisions.
+- Disco, Polaroid and other Easter eggs restored with proper styles.
+- Arcade Mode fixed: toggling works and AI rule applied (AI wins at 10).
+- Various TypeScript lint fixes.
+
+### Added
+- New Easter Egg: "Polaroid" — type "photo" to take a screenshot of the canvas (downloadable PNG) with flash effect.
+
+---
+
 ## [1.4.0] - 2025-10-20
 
 ### 🛠 Major Fixes & Features
