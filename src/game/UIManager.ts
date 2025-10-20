@@ -1,6 +1,9 @@
 ﻿/**
- * UIManager - screen switching, polaroid, small helpers
- * v1.4.2
+ * UIManager - screen switching, polaroid, small helpers (v1.4.2) - FIXED
+ *
+ * - Added onToggleArcade(callback)
+ * - Added activateDiscoMode() and toast()
+ * - Ensures only one screen visible at a time (hideAll)
  */
 
 export class UIManager {
@@ -8,6 +11,7 @@ export class UIManager {
     private showLeaderboardCb: (() => void) | null = null;
     private saveScoreCb: (() => void) | null = null;
     private backToMenuCb: (() => void) | null = null;
+    private toggleArcadeCb: ((v: boolean) => void) | null = null;
 
     constructor(private controllerRef?: any) {
         // wire basic UI buttons
@@ -16,13 +20,21 @@ export class UIManager {
         document.getElementById('saveScoreBtn')?.addEventListener('click', () => this.saveScoreCb && this.saveScoreCb());
         document.getElementById('backBtn')?.addEventListener('click', () => this.backToMenuCb && this.backToMenuCb());
         document.getElementById('menuBtn')?.addEventListener('click', () => this.backToMenuCb && this.backToMenuCb());
-        document.getElementById('arcadeToggle')?.addEventListener('change', () => { });
+
+        const arcadeEl = document.getElementById('arcadeToggle') as HTMLInputElement | null;
+        if (arcadeEl) {
+            arcadeEl.addEventListener('change', () => {
+                const checked = arcadeEl.checked;
+                if (this.toggleArcadeCb) this.toggleArcadeCb(checked);
+            });
+        }
     }
 
     onStart(cb: () => void) { this.startCb = cb; }
     onShowLeaderboard(cb: () => void) { this.showLeaderboardCb = cb; }
     onSaveScore(cb: () => void) { this.saveScoreCb = cb; }
     onBackToMenu(cb: () => void) { this.backToMenuCb = cb; }
+    onToggleArcade(cb: (v: boolean) => void) { this.toggleArcadeCb = cb; }
 
     showMenu() {
         this.hideAll();
@@ -64,8 +76,6 @@ export class UIManager {
         document.getElementById('aiScore')!.textContent = String(a);
     }
 
-    updateScoreElement() { /* alias if needed */ }
-
     getPlayerName(): string | null {
         const el = document.getElementById('playerName') as HTMLInputElement | null;
         return el ? el.value.trim() : null;
@@ -77,7 +87,6 @@ export class UIManager {
     }
 
     takePolaroid(canvas: HTMLCanvasElement) {
-        // flash handled in CSS via polaroid-flash element
         let flash = document.getElementById('polaroidFlash') as HTMLDivElement | null;
         if (!flash) {
             flash = document.createElement('div');
@@ -111,5 +120,38 @@ export class UIManager {
             console.warn('Polaroid failed', err);
             alert('Snapshot failed in this browser.');
         }
+    }
+
+    activateDiscoMode() {
+        document.body.classList.add('disco-mode');
+        const disco = document.createElement('div');
+        disco.id = 'discoBall';
+        disco.className = 'disco-ball';
+        document.body.appendChild(disco);
+        setTimeout(() => {
+            document.body.classList.remove('disco-mode');
+            const el = document.getElementById('discoBall');
+            if (el) el.remove();
+        }, 10000);
+    }
+
+    toast(msg: string) {
+        let t = document.getElementById('uiToast') as HTMLDivElement | null;
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'uiToast';
+            t.style.position = 'fixed';
+            t.style.left = '50%';
+            t.style.top = '12px';
+            t.style.transform = 'translateX(-50%)';
+            t.style.background = 'rgba(0,0,0,0.6)';
+            t.style.padding = '8px 12px';
+            t.style.borderRadius = '8px';
+            t.style.zIndex = '9999';
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => t && (t.style.display = 'none'), 2200);
     }
 }

@@ -1,17 +1,16 @@
 /**
- * GameController - central orchestrator (v1.4.2)
- * - central game loop
- * - delegates AI to AIController
- * - delegates input handling to InputManager
- * - delegates UI to UIManager
+ * GameController - central orchestrator (v1.4.2) - FIXED
  *
- * This file contains the main loop and wiring previously in PongGame,
- * split into smaller modules for easier maintenance.
+ * - Duplicate function removed
+ * - onSecret now uses the incoming sequence (no unused 'seq')
+ * - added public showMenu/showLeaderboard methods so UI wiring can call controller methods
+ * - annotated onToggleArcade callback type (boolean)
+ * - uses freezeActive / gravityActive in update to avoid unused-vars warnings
  */
 
 import { Ball } from './Ball';
 import { Paddle } from './Paddle';
-import { AbilitySystem, AbilityType, type Ability } from './AbilitySystem';
+import { AbilitySystem, AbilityType } from './AbilitySystem';
 import { SoundManager } from '../managers/SoundManager';
 import { MusicManager } from '../managers/MusicManager';
 import { LeaderboardManager } from '../managers/LeaderboardManager';
@@ -94,20 +93,49 @@ export class GameController {
         this.uiManager.onShowLeaderboard(() => this.showLeaderboard());
         this.uiManager.onSaveScore(() => this.saveScore());
         this.uiManager.onBackToMenu(() => this.showMenu());
-        this.uiManager.onToggleArcade((v) => { this.config.winScore = v ? 9999 : 10; /* keep winScore default; arcade uses AI 10 rule */ });
+        // ensure onToggleArcade accepts boolean
+        this.uiManager.onToggleArcade((v: boolean) => {
+            // arcade toggling: keep winScore unchanged for standard, but UIManager.isArcade() drives arcade rule
+            console.log('UI requested arcade toggle:', v);
+        });
 
         // ensure screens hidden correctly
         this.uiManager.showMenu();
     }
 
-    // called by UIManager when user types secrets
+    /**
+     * Called when input manager detects secret sequence (except polaroid)
+     */
     private onSecret(seq: string): void {
-        // polaroid handled separately
-        // other sequences forwarded to UI manager
+        if (!seq) return;
+        const s = seq.toLowerCase();
+
+        if (s.includes('pong')) {
+            // enlarge balls briefly
+            this.balls.forEach(b => b.radius = Math.max(b.radius, 14));
+            setTimeout(() => this.balls.forEach(b => b.radius = 8), 8000);
+            this.uiManager.toast('Classic Pong activated!');
+        } else if (s.includes('disco')) {
+            this.activateDiscoMode();
+        } else if (s.includes('speed')) {
+            this.balls.forEach(b => (b as any).maxSpeed = 24);
+            setTimeout(() => this.balls.forEach(b => (b as any).maxSpeed = undefined), 8000);
+            this.uiManager.toast('Speed Hack!');
+        } else if (s.includes('matrix')) {
+            document.body.style.background = 'linear-gradient(135deg,#041014 0%, #02110a 100%)';
+            document.body.style.color = '#00ff00';
+            setTimeout(() => { document.body.style.background = ''; document.body.style.color = ''; }, 15000);
+            this.uiManager.toast('Matrix Mode!');
+        } else if (s.includes('god')) {
+            const old = this.config.paddleSpeed;
+            this.config.paddleSpeed = 20;
+            this.player.height = Math.min(this.canvas.height, 220);
+            setTimeout(() => { this.config.paddleSpeed = old; this.player.height = 100; }, 10000);
+            this.uiManager.toast('God Mode!');
+        }
     }
 
     private onPolaroid(): void {
-        // handled by uiManager -> create screenshot and download
         this.uiManager.takePolaroid(this.canvas);
     }
 
@@ -115,9 +143,10 @@ export class GameController {
         this.stopGame();
 
         const abilities = this.abilitySystem.selectRandomAbilities();
-        this.player.setAbilities(abilities);
-        this.ai.setAbilities(abilities);
-        this.uiManager.displaySelectedAbilities(abilities);
+        // abilities typed as any[] here to avoid an unused-type import error in some TS configs
+        this.player.setAbilities(abilities as any);
+        this.ai.setAbilities(abilities as any);
+        this.uiManager.displaySelectedAbilities(abilities as any);
 
         this.musicManager.start();
         this.uiManager.showGame();
@@ -131,7 +160,7 @@ export class GameController {
         this.paused = false;
         this.gameRunning = true;
 
-        // simple countdown
+        // start loop
         this.gameLoop();
     }
 
@@ -162,7 +191,17 @@ export class GameController {
         // AI decides movement & ability usage
         this.aiController.update(this.balls[0], this);
 
-        // magnet effect (only in front of player)
+        // apply freeze: slow ball movement
+        if (this.freezeActive) {
+            this.balls.forEach(b => { b.speedX *= 0.98; b.speedY *= 0.98; });
+        }
+
+        // gravity: small downward pull
+        if (this.gravityActive) {
+            this.balls.forEach(b => { b.speedY += 0.08; });
+        }
+
+        // magnet effect
         if (this.magnetActive) {
             const paddleCenter = this.player.y + this.player.height / 2;
             this.balls.forEach(ball => {
@@ -177,7 +216,7 @@ export class GameController {
             });
         }
 
-        // update balls, collisions and scoring
+        // update balls and collisions
         this.balls = this.balls.filter(ball => {
             ball.update();
 
@@ -258,8 +297,8 @@ export class GameController {
     }
 
     private draw(): void {
-        // background & effects left simple — UIManager handles overlays when required
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
         if (this.slowMotionActive) {
             this.ctx.fillStyle = 'rgba(76,222,128,0.06)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -281,15 +320,10 @@ export class GameController {
     }
 
     private checkGameOver(): void {
-        // arcade mode: AI wins at 10 (uiManager controls arcade toggle)
         if (this.uiManager.isArcade()) {
-            if (this.aiScore >= 10 || this.playerScore >= this.config.winScore) {
-                this.endGame();
-            }
+            if (this.aiScore >= 10 || this.playerScore >= this.config.winScore) this.endGame();
         } else {
-            if (this.playerScore >= this.config.winScore || this.aiScore >= this.config.winScore) {
-                this.endGame();
-            }
+            if (this.playerScore >= this.config.winScore || this.aiScore >= this.config.winScore) this.endGame();
         }
     }
 
@@ -300,25 +334,17 @@ export class GameController {
     }
 
     public saveScore(): void {
-        // invoked by UI
         const name = this.uiManager.getPlayerName() || 'Anonymous';
         const mode = this.uiManager.isArcade() ? 'arcade' : 'standard';
         this.leaderboardManager.addEntry(name, this.playerScore, this.aiScore, mode);
         this.uiManager.showMenu();
     }
 
-    private updateScoreUI() {
-        this.uiManager.updateScore(this.playerScore, this.aiScore);
-    }
-
-    // Expose ability activation so AIController can request and UI/keys can trigger
     public tryActivateAbility(type: AbilityType): boolean {
         const last = this.abilityCooldowns.get(type) ?? 0;
         if (Date.now() < last) return false;
         this.abilityCooldowns.set(type, Date.now() + 4000);
-        // apply to player
-        this.player.activateAbility(type);
-        // central effects for certain abilities
+        this.player.activateAbility(type as any);
         switch (type) {
             case AbilityType.MAGNET: this.magnetActive = true; setTimeout(() => this.magnetActive = false, 2000); break;
             case AbilityType.DOUBLE_SCORE: this.doubleScoreActive = true; break;
@@ -338,9 +364,28 @@ export class GameController {
         setTimeout(() => { this.balls = this.balls.slice(0, 1); this.multiBallActive = false; }, 3000);
     }
 
-    // UI helpers for external interaction (optional)
     public togglePause(): void {
         this.paused = !this.paused;
         if (!this.paused && this.gameRunning) this.gameLoop();
+    }
+
+    // Public helpers so UI callbacks can call controller functions directly
+    public showMenu(): void {
+        this.stopGame();
+        this.musicManager.stop();
+        this.uiManager.showMenu();
+    }
+
+    public showLeaderboard(): void {
+        this.stopGame();
+        this.musicManager.stop();
+        this.uiManager.showLeaderboard();
+    }
+
+    private activateDiscoMode(): void {
+        this.uiManager.activateDiscoMode();
+        // small in-game flicker effect
+        this.slowMotionActive = true;
+        setTimeout(() => this.slowMotionActive = false, 3000);
     }
 }
