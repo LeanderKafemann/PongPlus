@@ -67,11 +67,12 @@ export class Paddle {
         return Date.now() < this.superSmashUntil;
     }
 
-    activateAbility(type: any): boolean {
-        // Placeholder - in a full impl check cooldowns & availability
+    activateAbility(_type: any): boolean {
+        // Placeholder - in a full implementation check cooldowns & availability.
         // For AI usage, returning true simulates activation success.
         return true;
     }
+
 
     teleport(canvasHeight: number): void {
         // center vertically

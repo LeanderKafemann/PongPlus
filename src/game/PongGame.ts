@@ -82,7 +82,7 @@ export class PongGame {
     private multiBallActive: boolean = false;
     private gravityActive: boolean = false;
 
-    // Easter eggs / click counts
+    // (spiel-weite Flags / counters)
     private secretClicks: number = 0;
     private footerClicks: number = 0;
     private authorClicks: number = 0;
@@ -101,14 +101,8 @@ export class PongGame {
     private sequenceKeys: string = '';
     private lastKeyTime: number = 0;
 
-    // Music toggle element created dynamically
-    private musicIndicatorEl: HTMLElement | null = null;
-
-    // Ability cooldown tracking (very simple)
+    // Ability cooldowns
     private abilityCooldowns: Map<AbilityType, number> = new Map();
-
-    // Animation helper
-    private animationTimestamp = 0;
 
     constructor() {
         // get DOM elements
