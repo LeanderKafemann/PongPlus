@@ -1,4 +1,4 @@
-# 🏓 PongPlus
+# 🏓 PongPlus (deprecated)
 
 <div align="center">
 
