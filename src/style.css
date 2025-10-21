@@ -1,14 +1,13 @@
-/* Playful, restored style for v1.4.2 */
+/* Playful, restored style for v1.4.3 (improves 1.3.3 look + disco/matrix overlays) */
 
 :root {
     --bg: #071024;
     --card: #0e1a2b;
-    --accent: linear-gradient(90deg,#7c3aed,#06b6d4);
+    --accent: #7c3aed;
     --muted: rgba(255,255,255,0.7);
     --glass: rgba(255,255,255,0.03);
     --btn: #7c3aed;
     --btn-contrast: #fff;
-    --playful-emoji-size: 20px;
 }
 
 * {
@@ -21,17 +20,26 @@ html, body {
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
     background: radial-gradient(circle at 10% 10%, #082033, #071024 40%, #030612 100%);
     color: #fff;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
+    /* Disco / Matrix apply to full document */
+    body.disco-mode {
+        filter: hue-rotate(120deg);
+        transition: filter 0.5s;
+    }
+
+    body.matrix-mode {
+        background: linear-gradient(0deg, #00110a, #00110a);
+        color: #00ff00;
+    }
+
+/* rest of UI */
 #app {
     max-width: 1100px;
     margin: 20px auto;
     padding: 16px;
 }
 
-/* Header */
 .header {
     display: flex;
     align-items: center;
@@ -39,19 +47,6 @@ html, body {
     margin-bottom: 12px;
 }
 
-    .header h1 {
-        font-size: 1.6rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-.version {
-    font-size: 0.8rem;
-    opacity: 0.85;
-}
-
-/* Menu card */
 .menu {
     background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
     padding: 14px;
@@ -74,38 +69,33 @@ html, body {
     border-radius: 12px;
     cursor: pointer;
     font-weight: 600;
-    box-shadow: 0 6px 18px rgba(124,58,237,0.15);
-    transition: transform .08s ease;
 }
 
     .btn:hover {
         transform: translateY(-2px);
     }
 
-.btn-danger {
-    background: #ef4444;
+.game-container {
+    position: relative;
+    background: var(--glass);
+    padding: 10px;
+    border-radius: 14px;
 }
 
-/* HUD and game container */
 .hud {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 0;
-    gap: 12px;
 }
 
 .score {
     font-size: 28px;
     font-weight: 800;
     letter-spacing: 2px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
     padding: 6px 12px;
     border-radius: 10px;
     background: rgba(0,0,0,0.12);
-    box-shadow: inset 0 -4px 8px rgba(255,255,255,0.02);
 }
 
 .ability-display {
@@ -113,13 +103,6 @@ html, body {
     gap: 8px;
     align-items: center;
     flex-wrap: wrap;
-}
-
-.game-container {
-    position: relative;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    padding: 10px;
-    border-radius: 14px;
 }
 
 canvas {
@@ -130,58 +113,19 @@ canvas {
     box-shadow: 0 12px 40px rgba(0,0,0,0.6);
 }
 
-/* Panels */
-.panel {
-    background: rgba(0,0,0,0.15);
-    padding: 12px;
-    border-radius: 12px;
-    margin-top: 12px;
-}
-
-.leaderboard-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 8px;
-}
-
-    .leaderboard-table th, .leaderboard-table td {
-        padding: 8px;
-        text-align: left;
-        border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
-
-/* Disco styles */
-.disco-mode {
-    animation: discoHue 1.2s linear infinite;
-}
-
-@keyframes discoHue {
-    0% {
-        filter: hue-rotate(0deg);
-    }
-
-    50% {
-        filter: hue-rotate(120deg);
-    }
-
-    100% {
-        filter: hue-rotate(240deg);
-    }
-}
-
-.disco-ball {
+/* music indicator */
+.music-indicator {
     position: fixed;
-    right: 16px;
-    bottom: 16px;
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    background: conic-gradient(#ff0,#f0f,#06f,#0ff,#ff0);
-    box-shadow: 0 14px 38px rgba(0,0,0,0.5);
+    right: 12px;
+    top: 12px;
+    background: rgba(255,255,255,0.06);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
     z-index: 9999;
 }
 
-/* Polaroid flash/hint */
+/* Polaroid */
 .polaroid-flash {
     position: fixed;
     left: 0;
@@ -217,7 +161,55 @@ canvas {
         animation: polaroid-fade 3s ease-in-out;
     }
 
-/* small screen */
+@keyframes polaroid-fade {
+    0% {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+}
+
+/* disco-ball used as decorative overlay */
+.disco-ball {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: conic-gradient(#ff0,#f0f,#06f,#0ff,#ff0);
+    box-shadow: 0 14px 38px rgba(0,0,0,0.5);
+    z-index: 9999;
+}
+
+/* toast */
+#uiToast {
+    position: fixed;
+    left: 50%;
+    top: 12px;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    z-index: 9999;
+    display: none;
+}
+
+/* small screen adjustments */
 @media (max-width: 720px) {
     #app {
         padding: 8px;

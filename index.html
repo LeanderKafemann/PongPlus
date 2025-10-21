@@ -4,15 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta name="description" content="PongPlus — Modern TypeScript Pong game (PWA)" />
-    <meta name="version" content="1.4.2">
-    <title>PongPlus v1.4.2</title>
+    <meta name="version" content="1.4.3">
+    <title>PongPlus v1.4.3</title>
 
     <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
     <div id="app">
         <header class="header">
-            <h1>🏓 PongPlus <span class="version">v1.4.2</span></h1>
+            <h1>🏓 PongPlus <span class="version">v1.4.3</span></h1>
         </header>
 
         <main>
@@ -28,6 +28,7 @@
                     </label>
 
                     <button id="installBtn" class="btn install-btn hidden">📱 Install App</button>
+                    <button id="fullscreenBtn" class="btn">⤢ Vollbild</button>
                 </div>
 
                 <div class="menu-footer">
@@ -91,10 +92,13 @@
                 <span class="author-name">LeanderKafemann</span>
             </div>
             <div class="copyright">
-                <small>© 2025 LeanderKafemann. All rights reserved. • v1.4.2</small>
+                <small>© 2025 LeanderKafemann. All rights reserved. • v1.4.3</small>
             </div>
         </footer>
     </div>
+
+    <!-- floating music button (restores music on/off) -->
+    <div id="musicIndicator" class="music-indicator" title="Toggle background music">🎵</div>
 
     <script type="module" src="/src/main.ts"></script>
 </body>

@@ -1,8 +1,9 @@
 ﻿/**
- * UIManager - screen switching, polaroid, small helpers (v1.4.2) - CLEANED
+ * UIManager - screen switching, polaroid, small helpers (v1.4.3)
  *
- * - Removed unused controllerRef property / parameter to avoid "declared but its value is never read".
- * - Keeps all previous UI wiring and helpers.
+ * - Adds fullscreen toggle wiring
+ * - toast(), activateDiscoMode(), takePolaroid(...) working
+ * - Ensures only one screen visible
  */
 
 export class UIManager {
@@ -11,6 +12,7 @@ export class UIManager {
     private saveScoreCb: (() => void) | null = null;
     private backToMenuCb: (() => void) | null = null;
     private toggleArcadeCb: ((v: boolean) => void) | null = null;
+    private fullscreenBtnEl: HTMLElement | null = null;
 
     constructor() {
         // wire basic UI buttons
@@ -27,6 +29,20 @@ export class UIManager {
                 if (this.toggleArcadeCb) this.toggleArcadeCb(checked);
             });
         }
+
+        // fullscreen button wiring
+        this.fullscreenBtnEl = document.getElementById('fullscreenBtn');
+        if (this.fullscreenBtnEl) {
+            this.fullscreenBtnEl.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => { });
+                    this.fullscreenBtnEl!.textContent = '⤢ Beenden';
+                } else {
+                    document.exitFullscreen().catch(() => { });
+                    this.fullscreenBtnEl!.textContent = '⤢ Vollbild';
+                }
+            });
+        }
     }
 
     onStart(cb: () => void) { this.startCb = cb; }
@@ -35,24 +51,11 @@ export class UIManager {
     onBackToMenu(cb: () => void) { this.backToMenuCb = cb; }
     onToggleArcade(cb: (v: boolean) => void) { this.toggleArcadeCb = cb; }
 
-    showMenu() {
-        this.hideAll();
-        document.getElementById('menu')?.classList.remove('hidden');
-    }
-
-    showGame() {
-        this.hideAll();
-        document.getElementById('gameContainer')?.classList.remove('hidden');
-    }
-
-    showLeaderboard() {
-        this.hideAll();
-        document.getElementById('leaderboard')?.classList.remove('hidden');
-    }
-
+    showMenu() { this.hideAll(); document.getElementById('menu')?.classList.remove('hidden'); }
+    showGame() { this.hideAll(); document.getElementById('gameContainer')?.classList.remove('hidden'); }
+    showLeaderboard() { this.hideAll(); document.getElementById('leaderboard')?.classList.remove('hidden'); }
     showGameOver(won: boolean, pScore: number, aiScore: number) {
-        this.hideAll();
-        document.getElementById('gameOver')?.classList.remove('hidden');
+        this.hideAll(); document.getElementById('gameOver')?.classList.remove('hidden');
         document.getElementById('gameOverTitle')!.textContent = won ? '🎉 You Win!' : '😢 You Lose!';
         document.getElementById('finalScore')!.textContent = `Final Score: ${pScore} - ${aiScore}`;
     }
@@ -147,6 +150,7 @@ export class UIManager {
             t.style.padding = '8px 12px';
             t.style.borderRadius = '8px';
             t.style.zIndex = '9999';
+            t.style.color = '#fff';
             document.body.appendChild(t);
         }
         t.textContent = msg;

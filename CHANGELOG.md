@@ -7,72 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.4.2] - 2025-10-20
+## [1.4.3] - 2025-10-21
 
 ### Fixed
-- Split PongGame into modular files for easier maintenance.
-- Fixed paddle-based abilities (Shield, Mini-Paddle, Teleport, Giant Paddle).
-- Arcade Mode bug fixed; AI wins at 10 when Arcade Mode is toggled.
-- Restored and improved UI styles to a more playful look reminiscent of v1.3.3.
-- Fixed screens showing in parallel; UIManager now ensures only one screen visible.
-- Service Worker disabled to avoid stale caching issues.
+- UI vollständig auf 1.3.3-ähnlichen Look zurückgeführt (Buttons, Panels, HUD, spielerische Details).
+- Pfeiltasten: Page-Scroll während aktiven Spiels wieder deaktiviert (InputManager.setActive).
+- Freeze: funktioniert jetzt korrekt (stoppt Ball-Updates / visuelles Feedback).
+- AI: Ghost‑Ball‑Spam stark reduziert (Cooldown + niedrigere Wahrscheinlichkeiten) — AI nutzt Ghost nur noch situativ.
+- Musik‑Toggle (🎵) wiederhergestellt und sichtbar; verknüpft mit MusicManager.
+- Polaroid (Easter Egg "photo") repariert: erzeugt Canvas‑PNG, zeigt Flash & Hint und startet Download.
+- Disco & Matrix: färben jetzt den gesamten Bildschirm (body) korrekt.
+- Vollbildmodus: Button hinzugefügt; funktioniert via Fullscreen API.
+- Alle Bildschirme (Menu / Game / Leaderboard / GameOver) schließen sich korrekt — nie mehr parallel sichtbar.
+- Service Worker deaktiviert / deinstalliert, damit kein veraltetes Caching mehr stört.
 
-### Added
-- New Easter Egg "Polaroid" (type "photo") — snapshot and download of canvas.
-- Added a few extra abilities to the pool and fixed their activation logic.
-
-### Notes
-- Please run a full build and manual QA (see README) before merging.
-
----
-
-## [1.4.1] - 2025-10-20
-
-### Fixed
-- Service Worker caching policy: switched HTML to network-first to avoid stale pages being served; cache migration logic improved.
-- Restore & fix leaderboard UI and persistence; robust migration retained.
-- Shield & other abilities: state handling fixed so shield actually protects against paddle collisions.
-- Disco, Polaroid and other Easter eggs restored with proper styles.
-- Arcade Mode fixed: toggling works and AI rule applied (AI wins at 10).
-- Various TypeScript lint fixes.
-
-### Added
-- New Easter Egg: "Polaroid" — type "photo" to take a screenshot of the canvas (downloadable PNG) with flash effect.
+### Improved
+- PongGame in modulare Controller aufgeteilt (GameController, AIController, UIManager, InputManager) — wartbarer Code.
+- Diverse TypeScript-Lint-Fixes (entfernte, benutzte Member, typisierte Callbacks).
+- Zusätzliche kleine Fähigkeiten und Easter‑Egg‑Stabilität verbessert.
 
 ---
 
-## [1.4.0] - 2025-10-20
+## [1.4.2] - 2025-10-20 (kurz)
+- Split der Hauptklasse in Module; Paddle‑Fähigkeiten repariert; Arcade Mode gefixt; SW deaktiviert; Polaroid hinzugefügt; erste UI‑Styling‑Wiederherstellung.
 
-### 🛠 Major Fixes & Features
+## [1.4.1] - 2025-10-20 (kurz)
+- Hotfixes: SW network-first für HTML; Leaderboard‑Fixes; Shield/ability state fixes; Easter‑eggs und HUD-Layout verbessert; Polaroid (erstes Release).
 
-#### Added
-- 🕹️ Arcade Mode — new game mode (toggle in menu). In Arcade Mode the game continues until the AI reaches 10 points. Mode is saved with leaderboard entries.
-- 🏆 Leaderboard entries now include mode (standard | arcade).
-- 🎁 New Easter Egg — double-click the score display during gameplay to instantly win.
+## [1.4.0] - 2025-10-20 (kurz)
+- Arcade Mode (Toggle); Leaderboard mode gespeicherte Einträge; AI‑Heuristiken verbessert; Magnet & Ghost‑Ball Verhalten; PWA‑Feinheiten.
 
-#### Fixed / Improved
-- 🤖 AI heuristics: smarter teleport usage, reduced multi-ball and mini-paddle spam, added conditional use of Double-Score and Ghost Ball under sensible conditions.
-- 🧲 Magnet bug: magnet now only pulls balls that are in front of (and on the player's side of) the paddle; respects mini/giant paddle states.
-- 👻 Ghost Ball: actually invisible now (no rendering), but still collidable.
-- 📊 Leaderboard migration: robust migration logic to convert old formats (numeric score or playerScore/aiScore) into new "X - Y" string format; sort by player or AI supported.
-- 📝 Increased inline JSDoc comments for main managers and game loop functions for better maintainability.
-- 🧭 Service Worker paths adjusted for GitHub Pages hosting (repo root prefix).
-- 🎯 HUD: power-up / effect HUD position adjusted to improve readability; effect text has outline for contrast.
-
-#### Technical
-- 🔧 Music tempo configurable in MusicManager (default faster tempo).
-- 🔁 Save mode in leaderboard entries for better analytics.
-- 🧩 Refactoring and minor API changes:
-  - LeaderboardManager.addEntry(name, playerScore, aiScore, mode)
-  - LeaderboardManager.getEntries(sortBy?: 'player' | 'ai')
-
----
-
-## [1.3.3] - 2025-01-18
-
-- Fixed leaderboard split-string migration and SW path errors
-- added AI teleport spam fix
-- added easter egg
+## [1.3.3] - 2025-01-18 (kurz)
+- Stabilität und Migration fixes; Disco/Matrix/Double-click easter-eggs etabliert.
 
 ## [1.3.2] - 2025-01-18
 
