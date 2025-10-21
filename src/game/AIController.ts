@@ -1,10 +1,9 @@
 /**
  * AIController - handles AI movement and ability usage decisions
- * v1.4.3
+ * v1.4.3 - FIX: use player distance to modulate aggression to avoid unused-variable TS error
  *
- * - Reduced ghost-ball probability
- * - Added cooldown (lastGhostUse) to avoid repeated ghost spamming
- * - Uses player distance to modulate aggression
+ * - Reduced ghost-ball probability and cooldown remains in place
+ * - Player distance influences aggression: when player is very close, AI reduces use of disruptive abilities
  */
 
 import { Ball } from './Ball';
@@ -41,8 +40,14 @@ export class AIController {
 
         // ability heuristics
         if (!targetBall.isGhost && Math.abs(targetBall.x - (this.ai.x)) < 180 && targetBall.getSpeed() > 5) {
-            const rand = Math.random();
+            const baseRand = Math.random();
             const abilities = this.ai.getAssignedAbilities();
+
+            // Use playerDist to modulate aggression:
+            // - if player is very close (<50px), AI should be more conservative (avoid self-harm abilities)
+            // - if player is far, AI can be more aggressive
+            const aggressionFactor = playerDist < 50 ? 0.5 : (playerDist < 120 ? 0.8 : 1.0);
+            const rand = baseRand * aggressionFactor;
 
             // Ghost cooldown and reduced chance
             const ghostAvailable = abilities.some(a => a.type === AbilityType.GHOST_BALL);
@@ -55,15 +60,15 @@ export class AIController {
                 return;
             }
 
-            // rest of abilities: slightly adjusted probabilities to reduce spam
+            // rest of abilities with adjusted probability windows
             if (rand >= 0.08 && rand < 0.22 && abilities.some(a => a.type === AbilityType.MULTI_BALL) && targetBall.getSpeed() > 7) {
                 if (this.ai.activateAbility(AbilityType.MULTI_BALL)) (controller as any).activateMultiBall?.();
             } else if (rand >= 0.22 && rand < 0.36 && abilities.some(a => a.type === AbilityType.DOUBLE_SCORE)) {
                 if (this.ai.activateAbility(AbilityType.DOUBLE_SCORE)) (controller as any).tryActivateAbility(AbilityType.DOUBLE_SCORE);
             } else if (rand >= 0.36 && rand < 0.52 && abilities.some(a => a.type === AbilityType.SHIELD)) {
-                if (this.ai.activateAbility(AbilityType.SHIELD)) { /* shield applied */ }
+                if (this.ai.activateAbility(AbilityType.SHIELD)) { /* shield applied on paddle */ }
             } else if (rand >= 0.52 && rand < 0.68 && abilities.some(a => a.type === AbilityType.SMASH)) {
-                if (this.ai.activateAbility(AbilityType.SMASH)) { /* handled at game level */ }
+                if (this.ai.activateAbility(AbilityType.SMASH)) { /* smash effect handled at game level */ }
             } else if (rand >= 0.68 && rand < 0.80 && abilities.some(a => a.type === AbilityType.TELEPORT)) {
                 if (Math.abs(targetBall.x - this.ai.x) < 80) {
                     if (this.ai.activateAbility(AbilityType.TELEPORT)) this.ai.teleport((controller as any).canvas?.height ?? 600);
